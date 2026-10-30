@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.IO;
-using System.Net.Sockets;
 using System.Text.Json;
 using System.Windows;
 
@@ -25,20 +24,16 @@ public partial class MainWindow : Window
             if (!File.Exists(_settingsFile)) return;
             var settings = JsonSerializer.Deserialize<LauncherSettings>(File.ReadAllText(_settingsFile));
             if (settings is null) return;
-            MtaPathBox.Text = settings.MtaPath;
-            HostBox.Text = settings.Host;
+            MtaPathBox.Text = settings.MtaPath ?? "";
+            HostBox.Text = settings.Host == "127.0.0.1" ? "" : settings.Host ?? "";
             PortBox.Text = settings.Port.ToString();
         }
-        catch
-        {
-            StatusText.Text = "Не удалось загрузить настройки";
-        }
+        catch { StatusText.Text = "Не удалось прочитать сохранённые настройки"; }
     }
 
     private void SaveSettings(int port)
     {
-        var directory = Path.GetDirectoryName(_settingsFile)!;
-        Directory.CreateDirectory(directory);
+        Directory.CreateDirectory(Path.GetDirectoryName(_settingsFile)!);
         var settings = new LauncherSettings(MtaPathBox.Text.Trim(), HostBox.Text.Trim(), port);
         File.WriteAllText(_settingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
     }
@@ -54,54 +49,33 @@ public partial class MainWindow : Window
             MtaPathBox.Text = dialog.SelectedPath;
     }
 
-    private async void PlayButton_Click(object sender, RoutedEventArgs e)
+    private void PlayButton_Click(object sender, RoutedEventArgs e)
     {
         var host = HostBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(host) || host.Contains('/') || host.Contains(' ') || host.Contains(':'))
+        {
+            StatusText.Text = "Укажи IP-адрес или домен сервера без протокола и порта.";
+            return;
+        }
         if (!int.TryParse(PortBox.Text.Trim(), out var port) || port is < 1 or > 65535)
         {
-            StatusText.Text = "Укажите корректный порт сервера";
+            StatusText.Text = "Укажи правильный порт MTA (например, 22003).";
             return;
         }
 
-        var mtaPath = MtaPathBox.Text.Trim();
-        var clientExe = Path.Combine(mtaPath, "Multi Theft Auto.exe");
-        if (!File.Exists(clientExe))
-        {
-            StatusText.Text = "Не найден Multi Theft Auto.exe — выберите правильную папку";
-            return;
-        }
-
-        PlayButton.IsEnabled = false;
         try
         {
-            StatusText.Text = "Проверяем доступность сервера...";
-            using var client = new TcpClient();
-            var connectTask = client.ConnectAsync(host, port);
-            var completed = await Task.WhenAny(connectTask, Task.Delay(4000));
-            if (completed != connectTask)
-            {
-                StatusText.Text = "Сервер не отвечает. Проверьте адрес и порт.";
-                return;
-            }
-            await connectTask;
             SaveSettings(port);
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = clientExe,
-                Arguments = $"mtasa://{host}:{port}",
-                WorkingDirectory = mtaPath,
-                UseShellExecute = true
-            });
-            StatusText.Text = "Запускаем MTA...";
+            var uri = $"mtasa://{host}:{port}";
+            // Use the Windows-registered MTA protocol handler: passing mtasa:// as a
+            // raw argument to Multi Theft Auto.exe does not reliably connect.
+            Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+            StatusText.Text = "MTA запускается. Подключаемся к " + host + ":" + port;
         }
         catch (Exception ex)
         {
-            StatusText.Text = "Ошибка запуска: " + ex.Message;
-        }
-        finally
-        {
-            PlayButton.IsEnabled = true;
+            StatusText.Text = "Не удалось открыть MTA: " + ex.Message +
+                ". Установи MTA и запусти её хотя бы один раз.";
         }
     }
 
