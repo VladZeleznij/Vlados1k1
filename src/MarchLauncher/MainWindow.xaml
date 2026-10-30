@@ -40,7 +40,7 @@
     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
      <Border Background="#22DCC9" Width="7" Height="39" CornerRadius="3" Margin="0,0,16,0"/>
      <StackPanel><TextBlock Text="MARCH" FontWeight="Black" FontSize="30" Foreground="#45F1D5" LineHeight="32"/>
-      <TextBlock Text="ROLE PLAY" FontWeight="SemiBold" FontSize="12" LetterSpacing="4" Foreground="#E5F4F6"/></StackPanel>
+      <TextBlock Text="ROLE PLAY" FontWeight="SemiBold" FontSize="12" Foreground="#E5F4F6"/></StackPanel>
     </StackPanel>
     <TextBlock Text="ОФИЦИАЛЬНЫЙ ЛАУНЧЕР  •  WINDOWS" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#8EA8B6" FontSize="12"/>
    </DockPanel>
