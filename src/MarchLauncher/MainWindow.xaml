@@ -122,15 +122,14 @@
  </StackPanel></TabItem>
  <TabItem Header="Настройки">
  <StackPanel Margin="9,16,9,0">
- <TextBlock Text="ПОДКЛЮЧЕНИЕ К MTA" FontWeight="Bold" FontSize="15" Margin="0,0,0,12"/>
- <TextBlock Text="IP / домен" Foreground="#8DAAB8" FontSize="11"/>
- <TextBox x:Name="HostBox" Text="127.0.0.1" Padding="9,6" FontSize="13" Margin="0,3,0,9" TextChanged="ConnectionTextChanged"/>
- <TextBlock Text="Порт" Foreground="#8DAAB8" FontSize="11"/>
- <TextBox x:Name="PortBox" Text="22003" Padding="9,6" FontSize="13" Margin="0,3,0,9" TextChanged="ConnectionTextChanged"/>
+ <TextBlock Text="ПОДКЛЮЧЕНИЕ К MTA" FontWeight="Bold" FontSize="15" Margin="0,0,0,14"/>
+ <TextBlock Text="СЕРВЕР MARCH ROLE PLAY" Foreground="#8DAAB8" FontSize="11"/>
+ <TextBlock Text="127.0.0.1:22003" Foreground="#0CF1ED" FontWeight="Bold" FontSize="20" Margin="0,6,0,9"/>
+ <TextBlock Text="Адрес сервера установлен автоматически и не изменяется." Foreground="#A5C3CF" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,19"/>
  <TextBlock Text="Папка MTA (необязательно)" Foreground="#8DAAB8" FontSize="11"/>
- <TextBox x:Name="MtaPathBox" Padding="9,6" FontSize="12" Margin="0,3,0,10"/>
+ <TextBox x:Name="MtaPathBox" Padding="9,6" FontSize="12" Margin="0,5,0,10"/>
  <Button Content="ВЫБРАТЬ ПАПКУ MTA" Height="38" Click="BrowseButton_Click"/>
- <TextBlock Text="Настройки сохраняются при запуске игры." Foreground="#7795A6" TextWrapping="Wrap" FontSize="11" Margin="0,15,0,0"/>
+ <TextBlock Text="Для подключения нажми «Играть»." Foreground="#7795A6" TextWrapping="Wrap" FontSize="11" Margin="0,16,0,0"/>
  </StackPanel></TabItem>
  </TabControl>
  </Border>
