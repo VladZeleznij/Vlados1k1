@@ -98,8 +98,8 @@ public partial class MainWindow : Window
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
     private void NewsButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Новости проекта отображаются на главной.";
     private void PromoButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Промокоды будут доступны после подключения серверного API.";
-    private void AccountButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Личный кабинет появится после подключения march_auth.";
-    private void SettingsButton_Click(object sender, RoutedEventArgs e) { HostBox.Focus(); StatusText.Text = "Настройки сервера находятся справа."; }
+    private void AccountButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 0; StatusText.Text = "Авторизация появится после подключения march_auth."; }
+    private void SettingsButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 2; HostBox.Focus(); StatusText.Text = "Настройки сервера находятся справа."; }
 
     private sealed record LauncherSettings(string MtaPath, string Host, int Port);
 }
