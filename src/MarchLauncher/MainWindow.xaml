@@ -88,7 +88,7 @@
  <TextBlock Text="Порт" Foreground="#8DAAB8" FontSize="11"/>
  <TextBox x:Name="PortBox" Text="22003" Padding="9,6" FontSize="13" Margin="0,3,0,7" TextChanged="ConnectionTextChanged"/>
  <TextBlock Text="Папка MTA (необязательно)" Foreground="#8DAAB8" FontSize="11"/>
- <TextBox x:Name="MtaPathBox" Padding="9,6" FontSize="12" Margin="0,3,0,7" TextTrimming="None"/>
+ <TextBox x:Name="MtaPathBox" Padding="9,6" FontSize="12" Margin="0,3,0,7"/>
  <Button Content="ВЫБРАТЬ ПАПКУ MTA" Height="34" Padding="8,4" FontSize="12" Click="BrowseButton_Click"/>
  <TextBlock Text="Настройки сохраняются при запуске игры." Foreground="#7795A6" TextWrapping="Wrap" FontSize="11" Margin="0,8,0,0"/>
  </StackPanel>
