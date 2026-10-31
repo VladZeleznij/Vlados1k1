@@ -16,7 +16,7 @@
  <Grid.ColumnDefinitions><ColumnDefinition Width="270"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
  <Border Grid.Column="0" Background="#E9051720" BorderBrush="#1C3C4A" BorderThickness="0,0,1,0">
  <Grid Margin="17,22"><Grid.RowDefinitions><RowDefinition Height="130"/><RowDefinition Height="*"/><RowDefinition Height="180"/></Grid.RowDefinitions>
- <StackPanel VerticalAlignment="Top"><TextBlock Text="MARCH" FontSize="38" FontWeight="Black" FontStyle="Italic" Foreground="{StaticResource Aqua}"/><TextBlock Text="R O L E  P L A Y" Margin="5,-5,0,0" FontSize="12" Foreground="White"/></StackPanel>
+ <StackPanel VerticalAlignment="Top"><TextBlock Text="MARCH" FontSize="46" FontWeight="Black" FontStyle="Italic" Foreground="{StaticResource Aqua}"/><TextBlock Text="R O L E  P L A Y" Margin="5,-5,0,0" FontSize="12" Foreground="White"/></StackPanel>
  <StackPanel Grid.Row="1" VerticalAlignment="Top">
  <Button Content="⌂   Главная" Background="#085C68" Foreground="White" FontSize="16" HorizontalContentAlignment="Left" Height="49"/>
  <Button Content="▤   Новости" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="NewsButton_Click"/>
@@ -24,7 +24,7 @@
  <Button Content="♙   Личный кабинет" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="AccountButton_Click"/>
  <Button Content="⚙   Настройки" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="SettingsButton_Click"/>
  </StackPanel>
- <StackPanel Grid.Row="2" VerticalAlignment="Bottom">
+ <StackPanel Grid.Row="2" VerticalAlignment="Bottom"><TextBlock Text="◉       VK       ➤" FontSize="19" Foreground="#90C3D2" Margin="0,0,0,18"/>
  <TextBlock Text="БОЛЬШЕ, ЧЕМ ИГРА" Foreground="{StaticResource Aqua}" FontWeight="Bold" FontStyle="Italic" FontSize="19" TextWrapping="Wrap"/>
  <TextBlock Text="ОБЩЕНИЕ  •  РАЗВИТИЕ  •  СВОБОДА" Foreground="#7D9BAC" FontSize="10" TextWrapping="Wrap" Margin="0,12,0,15"/>
  <TextBlock Text="MARCH ROLE PLAY" Foreground="#628396" FontSize="11"/>
@@ -46,10 +46,10 @@
  <Rectangle IsHitTestVisible="False"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#CC06131C" Offset="0"/><GradientStop Color="#7706131C" Offset=".48"/><GradientStop Color="#1806131C" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
 
  <StackPanel Margin="30,24,30,20" VerticalAlignment="Top" HorizontalAlignment="Left">
- <TextBlock Text="MARCH" Foreground="{StaticResource Aqua}" FontSize="62" FontWeight="Black" FontStyle="Italic"/>
+ <TextBlock Text="MARCH" Foreground="{StaticResource Aqua}" FontSize="72" FontWeight="Black" FontStyle="Italic"/>
  <TextBlock Text="R O L E   P L A Y" FontSize="19" FontWeight="Bold" Margin="8,-10,0,15"/>
- <TextBlock Text="ТВОЙ НОВЫЙ МИР" FontSize="18" FontWeight="Bold" Margin="8,9,0,5"/>
- <TextBlock Text="Уникальный мир, где ты можешь быть кем угодно" FontSize="12" Foreground="#D5E6EB" Margin="8,0,0,0" TextWrapping="Wrap"/>
+ 
+ <TextBlock Text="Уникальный мир, где ты можешь быть кем угодно" FontSize="14" Foreground="#F0F8FA" Margin="8,34,0,0" TextWrapping="Wrap"/>
  </StackPanel>
  </Grid></Border>
  <Border Grid.Row="0" Grid.Column="2" CornerRadius="10" Background="#EF081B25" BorderBrush="#1B4E5A" BorderThickness="1" Padding="17">
@@ -71,13 +71,30 @@
  </Grid>
  <Button Grid.Row="2" Content="▶  ПОДКЛЮЧИТЬСЯ" Height="43" Background="#00B8B5" Foreground="#031923" FontSize="14" FontWeight="Bold" Click="PlayButton_Click"/>
  </Grid></Border>
- <Border Grid.Row="1" Grid.Column="0" Margin="0,12,0,0" CornerRadius="10" Background="#E3081B25" BorderBrush="#1B4E5A" BorderThickness="1" Padding="19">
- <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"><StackPanel>
- <DockPanel Margin="0,0,0,15"><TextBlock Text="ПОСЛЕДНИЕ НОВОСТИ" FontWeight="Bold" FontSize="18"/><TextBlock Text="Все новости →" Foreground="#12D9D6" HorizontalAlignment="Right" Margin="20,3,0,0"/></DockPanel>
- <Border BorderBrush="#193F4D" BorderThickness="0,0,0,1" Padding="5,13"><StackPanel><TextBlock Text="Открытие MARCH ROLE PLAY" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Добро пожаловать в наш игровой мир!" Foreground="#8DAAB8" Margin="0,6,0,0"/></StackPanel></Border>
- <Border BorderBrush="#193F4D" BorderThickness="0,0,0,1" Padding="5,13"><StackPanel><TextBlock Text="Новости проекта" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Актуальные объявления появятся после подключения новостного API." Foreground="#8DAAB8" TextWrapping="Wrap" Margin="0,6,0,0"/></StackPanel></Border>
- <Border Padding="5,13"><StackPanel><TextBlock Text="Сообщество MARCH ROLE PLAY" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Следи за новостями и событиями проекта." Foreground="#8DAAB8" Margin="0,6,0,0"/></StackPanel></Border>
- </StackPanel></ScrollViewer></Border>
+ <Border Grid.Row="1" Grid.Column="0" Margin="0,12,0,0" CornerRadius="12" Background="#F0081922" BorderBrush="#176173" BorderThickness="1" Padding="16,12">
+ <Grid>
+ <Grid.RowDefinitions><RowDefinition Height="39"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+ <DockPanel><TextBlock Text="▤   Последние новости" FontSize="19" FontWeight="SemiBold"/><TextBlock Text="Все новости  →" Foreground="#15D9DA" HorizontalAlignment="Right" Margin="28,4,0,0"/></DockPanel>
+ <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+ <StackPanel>
+ <Border BorderBrush="#204756" BorderThickness="0,0,0,1" Padding="0,8"><Grid Height="83"><Grid.ColumnDefinitions><ColumnDefinition Width="136"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+ <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Viewbox="0.3,0.05,0.42,0.5" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
+ <StackPanel Grid.Column="1" Margin="16,2,0,0"><TextBlock Text="Открытие проекта MARCH ROLE PLAY" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Добро пожаловать в наш игровой мир!" Foreground="#A7C3D1" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/><TextBlock Text="Новости проекта" Foreground="#4ED6D5" FontSize="11" Margin="0,7,0,0"/></StackPanel>
+ </Grid></Border>
+ <Border BorderBrush="#204756" BorderThickness="0,0,0,1" Padding="0,8"><Grid Height="83"><Grid.ColumnDefinitions><ColumnDefinition Width="136"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+ <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Viewbox="0.52,0.48,0.44,0.45" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
+ <StackPanel Grid.Column="1" Margin="16,2,0,0"><TextBlock Text="Разработка сервера" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Следи за новостями разработки и изменениями проекта." Foreground="#A7C3D1" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/><TextBlock Text="Обновления" Foreground="#4ED6D5" FontSize="11" Margin="0,7,0,0"/></StackPanel>
+ </Grid></Border>
+ <Border BorderBrush="#204756" BorderThickness="0,0,0,1" Padding="0,8"><Grid Height="83"><Grid.ColumnDefinitions><ColumnDefinition Width="136"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+ <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Viewbox="0.02,0.12,0.4,0.6" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
+ <StackPanel Grid.Column="1" Margin="16,2,0,0"><TextBlock Text="Промокоды" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Акции и бонусы появятся после запуска сервера." Foreground="#A7C3D1" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/><TextBlock Text="Акции" Foreground="#4ED6D5" FontSize="11" Margin="0,7,0,0"/></StackPanel>
+ </Grid></Border>
+ <Border Padding="0,8"><Grid Height="83"><Grid.ColumnDefinitions><ColumnDefinition Width="136"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+ <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Viewbox="0.2,0.15,0.5,0.55" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
+ <StackPanel Grid.Column="1" Margin="16,2,0,0"><TextBlock Text="Сообщество MARCH ROLE PLAY" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Общайся с игроками и узнавай новости проекта." Foreground="#A7C3D1" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/><TextBlock Text="Сообщество" Foreground="#4ED6D5" FontSize="11" Margin="0,7,0,0"/></StackPanel>
+ </Grid></Border>
+ </StackPanel></ScrollViewer>
+ </Grid></Border>
  <Border Grid.Row="1" Grid.Column="2" Margin="0,12,0,0" CornerRadius="10" Background="#F2081B25" BorderBrush="#1B4E5A" BorderThickness="1" Padding="14">
  <TabControl x:Name="RightTabs" Background="Transparent" BorderThickness="0" Foreground="White">
  <TabControl.Resources>
