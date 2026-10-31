@@ -1,0 +1,36 @@
+Add-Type -AssemblyName System.Drawing
+$size = 256
+$bmp = New-Object System.Drawing.Bitmap($size, $size)
+$g = [System.Drawing.Graphics]::FromImage($bmp)
+$g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+$g.Clear([System.Drawing.Color]::FromArgb(7,20,29))
+$turq = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(17,224,211))
+$white = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
+$font = New-Object System.Drawing.Font('Arial', 135, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
+$small = New-Object System.Drawing.Font('Arial', 25, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
+$g.FillRectangle($turq, 16, 20, 11, 216)
+$g.DrawString('M', $font, $turq, 45, 32)
+$g.DrawString('RP', $small, $white, 97, 198)
+$g.Dispose()
+$stream = New-Object System.IO.MemoryStream
+$bmp.Save($stream, [System.Drawing.Imaging.ImageFormat]::Png)
+$png = $stream.ToArray()
+$stream.Dispose()
+$bmp.Dispose()
+$target = Join-Path $PSScriptRoot 'march.ico'
+$fs = [System.IO.File]::Create($target)
+$bw = New-Object System.IO.BinaryWriter($fs)
+$bw.Write([UInt16]0)
+$bw.Write([UInt16]1)
+$bw.Write([UInt16]1)
+$bw.Write([byte]0)
+$bw.Write([byte]0)
+$bw.Write([byte]0)
+$bw.Write([byte]0)
+$bw.Write([UInt16]1)
+$bw.Write([UInt16]32)
+$bw.Write([UInt32]$png.Length)
+$bw.Write([UInt32]22)
+$bw.Write($png)
+$bw.Dispose()
+Write-Host "Created $target"
