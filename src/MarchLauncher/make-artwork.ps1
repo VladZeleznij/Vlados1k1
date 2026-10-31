@@ -37,31 +37,4 @@ foreach($asset in $assets) {
  }
 }
 
-# Blend the city and a real automotive photograph into a cinematic hero image.
-# This produces an actual JPG resource embedded into the compiled WPF application.
-try {
- $city=[System.Drawing.Bitmap]::new((Join-Path $root 'hero.jpg'))
- $car=[System.Drawing.Bitmap]::new((Join-Path $root 'news2.jpg'))
- $width=1400; $height=700
- $canvas=[System.Drawing.Bitmap]::new($width,$height)
- $gfx=[System.Drawing.Graphics]::FromImage($canvas)
- $gfx.InterpolationMode=[System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
- $gfx.DrawImage($city,([System.Drawing.Rectangle]::new(0,0,$width,$height)))
- $carX=550; $carY=225; $carW=850; $carH=475
- # Feather the car photo into the city with a gradual alpha mask.
- $attrs=[System.Drawing.Imaging.ImageAttributes]::new()
- $matrix=[System.Drawing.Imaging.ColorMatrix]::new()
- $matrix.Matrix33=0.78
- $attrs.SetColorMatrix($matrix)
- $gfx.DrawImage($car,([System.Drawing.Rectangle]::new($carX,$carY,$carW,$carH)),0,0,$car.Width,$car.Height,[System.Drawing.GraphicsUnit]::Pixel,$attrs)
- $attrs.Dispose()
- $fade=[System.Drawing.Drawing2D.LinearGradientBrush]::new(([System.Drawing.Rectangle]::new(350,170,580,530)),[System.Drawing.Color]::FromArgb(235,4,16,25),[System.Drawing.Color]::FromArgb(0,4,16,25),0)
- $gfx.FillRectangle($fade,350,170,580,530)
- $fade.Dispose()
- $shade=[System.Drawing.Drawing2D.LinearGradientBrush]::new(([System.Drawing.Rectangle]::new(0,0,$width,$height)),[System.Drawing.Color]::FromArgb(190,1,9,17),[System.Drawing.Color]::FromArgb(20,2,11,20),0)
- $gfx.FillRectangle($shade,0,0,$width,$height)
- $shade.Dispose();$gfx.Dispose();$car.Dispose();$city.Dispose()
- $canvas.Save((Join-Path $root 'hero.jpg'),[System.Drawing.Imaging.ImageFormat]::Jpeg)
- $canvas.Dispose()
- Write-Host 'Composed city and sports-car hero image.'
-} catch { Write-Warning "Hero composite skipped: $($_.Exception.Message)" }
+# Hero image blending is handled by WPF opacity masks in MainWindow.xaml.\n
