@@ -12,7 +12,7 @@
  </Window.Resources>
  <Border BorderBrush="#174254" BorderThickness="1">
  <Grid>
- <Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#102735" Offset="0"/><GradientStop Color="#07141D" Offset=".55"/><GradientStop Color="#050B12" Offset="1"/></LinearGradientBrush></Grid.Background>
+ <Grid.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Opacity=".48"/></Grid.Background>
  <Grid.ColumnDefinitions><ColumnDefinition Width="235"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
  <Border Grid.Column="0" Background="#E9051720" BorderBrush="#1C3C4A" BorderThickness="0,0,1,0">
  <Grid Margin="17,22"><Grid.RowDefinitions><RowDefinition Height="130"/><RowDefinition Height="*"/><RowDefinition Height="180"/></Grid.RowDefinitions>
@@ -42,11 +42,12 @@
  <Grid.RowDefinitions><RowDefinition Height="1.15*"/><RowDefinition Height="1.4*"/><RowDefinition Height="86"/></Grid.RowDefinitions>
  <Border Grid.Row="0" Grid.Column="0" CornerRadius="10" BorderBrush="#1B5964" BorderThickness="1" ClipToBounds="True">
  <Grid>
- <Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#173F50" Offset="0"/><GradientStop Color="#17202F" Offset=".55"/><GradientStop Color="#6C3D43" Offset="1"/></LinearGradientBrush></Grid.Background>
+ <Grid.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill"/></Grid.Background>
+ <Rectangle Fill="#A0061720" IsHitTestVisible="False"/>
  <Canvas VerticalAlignment="Bottom" Height="165" Opacity=".34" IsHitTestVisible="False">
  <Rectangle Width="70" Height="120" Fill="#06111D" Canvas.Left="5" Canvas.Top="48"/><Rectangle Width="65" Height="150" Fill="#06111D" Canvas.Left="80" Canvas.Top="16"/><Rectangle Width="95" Height="90" Fill="#06111D" Canvas.Left="150" Canvas.Top="80"/><Rectangle Width="60" Height="145" Fill="#06111D" Canvas.Left="250" Canvas.Top="22"/><Rectangle Width="110" Height="110" Fill="#06111D" Canvas.Left="320" Canvas.Top="58"/><Rectangle Width="100" Height="155" Fill="#06111D" Canvas.Left="450" Canvas.Top="12"/><Rectangle Width="95" Height="100" Fill="#06111D" Canvas.Left="565" Canvas.Top="65"/>
  </Canvas>
- <StackPanel Margin="30" VerticalAlignment="Center">
+ <StackPanel Margin="30" VerticalAlignment="Center" Background="#6606131C">
  <TextBlock Text="MARCH" Foreground="{StaticResource Aqua}" FontSize="72" FontWeight="Black" FontStyle="Italic"/>
  <TextBlock Text="R O L E   P L A Y" FontSize="19" FontWeight="Bold" Margin="8,-10,0,15"/>
  <TextBlock Text="ТВОЙ НОВЫЙ МИР" FontSize="19" FontWeight="Bold" Margin="8,15,0,5"/>
@@ -72,7 +73,7 @@
  <Border Grid.Row="1" Grid.Column="2" Margin="0,12,0,0" CornerRadius="10" Background="#E3081B25" BorderBrush="#1B4E5A" BorderThickness="1" Padding="19">
  <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
  <TextBlock Text="НАСТРОЙКИ ПОДКЛЮЧЕНИЯ" FontWeight="Bold" FontSize="17"/>
- <StackPanel Grid.Row="1" Margin="0,15,0,0">
+ <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,15,0,0"><StackPanel>
  <TextBlock Text="IP / домен" Foreground="#8DAAB8"/><TextBox x:Name="HostBox" Text="127.0.0.1" Margin="0,6,0,12"/>
  <TextBlock Text="Порт" Foreground="#8DAAB8"/><TextBox x:Name="PortBox" Text="22003" Margin="0,6,0,12"/>
  <TextBlock Text="Папка MTA (необязательно)" Foreground="#8DAAB8"/><TextBox x:Name="MtaPathBox" Margin="0,6,0,10"/>
