@@ -47,8 +47,8 @@ public partial class MainWindow : Window
                 string ReadField()
                 {
                     if (index >= data.Length) throw new InvalidDataException("Неполный ASE-ответ");
-                    var length = data[index++];
-                    if (index + length > data.Length) throw new InvalidDataException("Неполный ASE-ответ");
+                    var length = data[index++] - 1; // ASE length includes its own prefix byte
+                    if (length < 0 || index + length > data.Length) throw new InvalidDataException("Неполный ASE-ответ");
                     var value = Encoding.UTF8.GetString(data, index, length);
                     index += length;
                     return value;
@@ -74,9 +74,9 @@ public partial class MainWindow : Window
             ServerVersionText.Text = string.IsNullOrWhiteSpace(result.Version) ? "—" : result.Version;
             ServerNameText.Text = string.IsNullOrWhiteSpace(result.Name) ? "MARCH ROLE PLAY" : result.Name;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ServerMonitorText.Text = "●  Сервер недоступен";
+            ServerMonitorText.Text = ex is OperationCanceledException ? "●  ASE не отвечает (UDP 22126)" : "●  Ошибка ASE: " + ex.Message;
             ServerMonitorText.Foreground = System.Windows.Media.Brushes.Orange;
             ServerPlayersText.Text = "— / —";
             ServerStateText.Text = "Оффлайн";
