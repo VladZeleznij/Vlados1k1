@@ -25,7 +25,7 @@ public partial class MainWindow : Window
             var settings = JsonSerializer.Deserialize<LauncherSettings>(File.ReadAllText(_settingsFile));
             if (settings is null) return;
             MtaPathBox.Text = settings.MtaPath ?? "";
-            HostBox.Text = settings.Host == "127.0.0.1" ? "" : settings.Host ?? "";
+            HostBox.Text = string.IsNullOrWhiteSpace(settings.Host) ? "127.0.0.1" : settings.Host;
             PortBox.Text = settings.Port.ToString();
         }
         catch { StatusText.Text = "Не удалось прочитать сохранённые настройки"; }
