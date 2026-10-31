@@ -21,6 +21,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Generate branded application icon
+        shell: pwsh
+        run: ./src/MarchLauncher/make-icon.ps1
       - name: Publish self-contained launcher
         run: dotnet publish src/MarchLauncher/MarchLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
       - name: Upload launcher artifact
