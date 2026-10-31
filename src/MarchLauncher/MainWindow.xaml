@@ -14,7 +14,7 @@
  <Grid>
  <Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#07131C" Offset="0"/><GradientStop Color="#031017" Offset=".55"/><GradientStop Color="#061A24" Offset="1"/></LinearGradientBrush></Grid.Background>
  <Grid.ColumnDefinitions><ColumnDefinition Width="270"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
- <Border Grid.Column="0" BorderBrush="#1C3C4A" BorderThickness="0,0,1,0"><Border.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Opacity=".35"/></Border.Background>
+ <Border Grid.Column="0" BorderBrush="#1C3C4A" BorderThickness="0,0,1,0"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#071A24" Offset="0"/><GradientStop Color="#041018" Offset=".65"/><GradientStop Color="#102D3C" Offset="1"/></LinearGradientBrush></Border.Background>
  <Grid Margin="17,22"><Grid.RowDefinitions><RowDefinition Height="130"/><RowDefinition Height="*"/><RowDefinition Height="180"/></Grid.RowDefinitions>
  <StackPanel VerticalAlignment="Top"><TextBlock Text="MARCH" FontSize="46" FontWeight="Black" FontStyle="Italic" Foreground="{StaticResource Aqua}"/><TextBlock Text="R O L E  P L A Y" Margin="5,-5,0,0" FontSize="12" Foreground="White"/></StackPanel>
  <StackPanel Grid.Row="1" VerticalAlignment="Top">
@@ -42,17 +42,17 @@
  <Grid.RowDefinitions><RowDefinition Height="1.05*"/><RowDefinition Height="1.55*"/><RowDefinition Height="86"/></Grid.RowDefinitions>
  <Border Grid.Row="0" Grid.Column="0" CornerRadius="10" BorderBrush="#1B5964" BorderThickness="1" ClipToBounds="True">
  <Grid>
- <Grid.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill"/></Grid.Background>
+ <Grid.Background><ImageBrush ImageSource="/hero.jpg" Stretch="UniformToFill"/></Grid.Background>
  <Rectangle IsHitTestVisible="False"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#CC06131C" Offset="0"/><GradientStop Color="#7706131C" Offset=".48"/><GradientStop Color="#1806131C" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
 
  <StackPanel Margin="30,24,30,20" VerticalAlignment="Top" HorizontalAlignment="Left">
- <TextBlock Text="MARCH" Foreground="{StaticResource Aqua}" FontSize="72" FontWeight="Black" FontStyle="Italic"/>
+ <TextBlock Text="MARCH" Foreground="{StaticResource Aqua}" FontSize="78" FontWeight="Black" FontStyle="Italic"><TextBlock.Effect><DropShadowEffect Color="#021018" BlurRadius="14" ShadowDepth="3" Opacity=".95"/></TextBlock.Effect></TextBlock>
  <TextBlock Text="R O L E   P L A Y" FontSize="19" FontWeight="Bold" Margin="8,-10,0,15"/>
  
  <TextBlock Text="Уникальный мир, где ты можешь быть кем угодно" FontSize="14" Foreground="#F0F8FA" Margin="8,34,0,0" TextWrapping="Wrap"/>
  </StackPanel>
  </Grid></Border>
- <Border Grid.Row="0" Grid.Column="2" CornerRadius="10" Background="#EF081B25" BorderBrush="#1B4E5A" BorderThickness="1" Padding="17">
+ <Border Grid.Row="0" Grid.Column="2" CornerRadius="10" Background="#F5081922" BorderBrush="#1B4E5A" BorderThickness="1" Padding="17">
  <Grid>
  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
  <StackPanel>
@@ -78,24 +78,24 @@
  <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
  <StackPanel>
  <Border BorderBrush="#204756" BorderThickness="0,0,0,1" Padding="0,8"><Grid Height="83"><Grid.ColumnDefinitions><ColumnDefinition Width="136"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
- <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Viewbox="0.3,0.05,0.42,0.5" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
+ <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/news1.jpg" Stretch="UniformToFill" Viewbox="0.3,0.05,0.42,0.5" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
  <StackPanel Grid.Column="1" Margin="16,2,0,0"><TextBlock Text="Открытие проекта MARCH ROLE PLAY" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Добро пожаловать в наш игровой мир!" Foreground="#A7C3D1" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/><TextBlock Text="Новости проекта" Foreground="#4ED6D5" FontSize="11" Margin="0,7,0,0"/></StackPanel>
  </Grid></Border>
  <Border BorderBrush="#204756" BorderThickness="0,0,0,1" Padding="0,8"><Grid Height="83"><Grid.ColumnDefinitions><ColumnDefinition Width="136"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
- <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Viewbox="0.52,0.48,0.44,0.45" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
+ <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/news2.jpg" Stretch="UniformToFill" Viewbox="0.52,0.48,0.44,0.45" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
  <StackPanel Grid.Column="1" Margin="16,2,0,0"><TextBlock Text="Разработка сервера" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Следи за новостями разработки и изменениями проекта." Foreground="#A7C3D1" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/><TextBlock Text="Обновления" Foreground="#4ED6D5" FontSize="11" Margin="0,7,0,0"/></StackPanel>
  </Grid></Border>
  <Border BorderBrush="#204756" BorderThickness="0,0,0,1" Padding="0,8"><Grid Height="83"><Grid.ColumnDefinitions><ColumnDefinition Width="136"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
- <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Viewbox="0.02,0.12,0.4,0.6" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
+ <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/news3.jpg" Stretch="UniformToFill" Viewbox="0.02,0.12,0.4,0.6" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
  <StackPanel Grid.Column="1" Margin="16,2,0,0"><TextBlock Text="Промокоды" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Акции и бонусы появятся после запуска сервера." Foreground="#A7C3D1" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/><TextBlock Text="Акции" Foreground="#4ED6D5" FontSize="11" Margin="0,7,0,0"/></StackPanel>
  </Grid></Border>
  <Border Padding="0,8"><Grid Height="83"><Grid.ColumnDefinitions><ColumnDefinition Width="136"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
- <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill" Viewbox="0.2,0.15,0.5,0.55" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
+ <Border CornerRadius="7" ClipToBounds="True"><Border.Background><ImageBrush ImageSource="/news4.jpg" Stretch="UniformToFill" Viewbox="0.2,0.15,0.5,0.55" ViewboxUnits="RelativeToBoundingBox"/></Border.Background></Border>
  <StackPanel Grid.Column="1" Margin="16,2,0,0"><TextBlock Text="Сообщество MARCH ROLE PLAY" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="Общайся с игроками и узнавай новости проекта." Foreground="#A7C3D1" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/><TextBlock Text="Сообщество" Foreground="#4ED6D5" FontSize="11" Margin="0,7,0,0"/></StackPanel>
  </Grid></Border>
  </StackPanel></ScrollViewer>
  </Grid></Border>
- <Border Grid.Row="1" Grid.Column="2" Margin="0,12,0,0" CornerRadius="10" Background="#F2081B25" BorderBrush="#1B4E5A" BorderThickness="1" Padding="14">
+ <Border Grid.Row="1" Grid.Column="2" Margin="0,12,0,0" CornerRadius="10" Background="#F5081922" BorderBrush="#1B4E5A" BorderThickness="1" Padding="14">
  <TabControl x:Name="RightTabs" Background="Transparent" BorderThickness="0" Foreground="White">
  <TabControl.Resources>
  <Style TargetType="TabItem"><Setter Property="Foreground" Value="#B4D1E0"/><Setter Property="FontSize" Value="14"/><Setter Property="Padding" Value="13,10"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem"><Border x:Name="TabBorder" BorderBrush="#174A58" BorderThickness="0,0,0,2" Background="Transparent" Padding="{TemplateBinding Padding}"><ContentPresenter ContentSource="Header" HorizontalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="TabBorder" Property="BorderBrush" Value="#12D9D6"/><Setter Property="Foreground" Value="#12D9D6"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
