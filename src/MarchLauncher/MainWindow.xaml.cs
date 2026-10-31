@@ -1,4 +1,7 @@
 using System.Diagnostics;
+using System.Net.Sockets;
+using System.Text;
+using System.Windows.Threading;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -11,11 +14,76 @@ public partial class MainWindow : Window
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "MARCH ROLE PLAY", "launcher-settings.json");
 
+    private readonly DispatcherTimer _monitorTimer = new() { Interval = TimeSpan.FromSeconds(20) };
+    private bool _checkingServer;
+
     public MainWindow()
     {
         InitializeComponent();
         LoadSettings();
+        _monitorTimer.Tick += async (_, _) => await UpdateServerStatusAsync();
+        _monitorTimer.Start();
+        Loaded += async (_, _) => await UpdateServerStatusAsync();
+        Closed += (_, _) => _monitorTimer.Stop();
+    }
 
+    private async Task UpdateServerStatusAsync()
+    {
+        if (_checkingServer) return;
+        _checkingServer = true;
+        try
+        {
+            var result = await Task.Run(async () =>
+            {
+                using var udp = new UdpClient();
+                udp.Connect("127.0.0.1", 22126);
+                await udp.SendAsync(new byte[] { (byte)'s' });
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                var packet = await udp.ReceiveAsync(timeout.Token);
+                var data = packet.Buffer;
+                if (data.Length < 8 || Encoding.ASCII.GetString(data, 0, 4) != "EYE1")
+                    throw new InvalidDataException("Некорректный ASE-ответ");
+                var index = 4;
+                string ReadField()
+                {
+                    if (index >= data.Length) throw new InvalidDataException("Неполный ASE-ответ");
+                    var length = data[index++];
+                    if (index + length > data.Length) throw new InvalidDataException("Неполный ASE-ответ");
+                    var value = Encoding.UTF8.GetString(data, index, length);
+                    index += length;
+                    return value;
+                }
+                _ = ReadField(); // game identifier
+                _ = ReadField(); // server port
+                var name = ReadField();
+                _ = ReadField(); // game mode
+                _ = ReadField(); // map
+                var version = ReadField();
+                _ = ReadField(); // password flag
+                var players = ReadField();
+                var slots = ReadField();
+                if (!int.TryParse(players, out var online) || !int.TryParse(slots, out var max)
+                    || online < 0 || max < 1 || online > max || max > 10000)
+                    throw new InvalidDataException("Некорректное количество игроков");
+                return (Name: name, Version: version, Online: online, Max: max);
+            });
+            ServerMonitorText.Text = "●  Сервер онлайн";
+            ServerMonitorText.Foreground = System.Windows.Media.Brushes.SpringGreen;
+            ServerPlayersText.Text = $"{result.Online} / {result.Max}";
+            ServerStateText.Text = "Онлайн";
+            ServerVersionText.Text = string.IsNullOrWhiteSpace(result.Version) ? "—" : result.Version;
+            ServerNameText.Text = string.IsNullOrWhiteSpace(result.Name) ? "MARCH ROLE PLAY" : result.Name;
+        }
+        catch (Exception)
+        {
+            ServerMonitorText.Text = "●  Сервер недоступен";
+            ServerMonitorText.Foreground = System.Windows.Media.Brushes.Orange;
+            ServerPlayersText.Text = "— / —";
+            ServerStateText.Text = "Оффлайн";
+            ServerVersionText.Text = "—";
+            ServerNameText.Text = "MARCH ROLE PLAY";
+        }
+        finally { _checkingServer = false; }
     }
 
     private void LoadSettings()
