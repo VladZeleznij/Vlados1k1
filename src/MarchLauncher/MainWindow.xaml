@@ -44,7 +44,8 @@
  <Grid.RowDefinitions><RowDefinition Height="1.05*"/><RowDefinition Height="1.55*"/><RowDefinition Height="86"/></Grid.RowDefinitions>
  <Border Grid.Row="0" Grid.Column="0" CornerRadius="12" BorderBrush="#315260" BorderThickness="1" ClipToBounds="True">
  <Grid>
- <Grid.Background><ImageBrush ImageSource="/hero.jpg" Stretch="UniformToFill"/></Grid.Background>
+ <Grid.Background><ImageBrush ImageSource="/news1.jpg" Stretch="UniformToFill"/></Grid.Background>
+ <Image Source="/news2.jpg" Stretch="UniformToFill" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="440" Height="270" Opacity=".94" IsHitTestVisible="False"><Image.OpacityMask><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="Transparent" Offset="0"/><GradientStop Color="#55FFFFFF" Offset=".28"/><GradientStop Color="White" Offset=".58"/></LinearGradientBrush></Image.OpacityMask></Image>
  <Rectangle IsHitTestVisible="False"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#CC06131C" Offset="0"/><GradientStop Color="#7706131C" Offset=".48"/><GradientStop Color="#1806131C" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
 
  <StackPanel Margin="34,28,30,20" VerticalAlignment="Top" HorizontalAlignment="Left">
@@ -59,7 +60,7 @@
  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
  <StackPanel>
  <TextBlock Text="СТАТУС СЕРВЕРА" FontSize="17" FontWeight="Bold"/>
- <TextBlock Text="●  Мониторинг не подключён" Foreground="#E8BA79" FontSize="12" Margin="0,9,0,0"/>
+ <TextBlock x:Name="ServerMonitorText" Text="●  Проверка сервера…" Foreground="#E8BA79" FontSize="12" Margin="0,9,0,0"/>
  </StackPanel>
  <Grid Grid.Row="1" Margin="0,11,0,9">
  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -68,9 +69,10 @@
  <TextBlock Text="АДРЕС СЕРВЕРА" Foreground="#8EAFC0" FontSize="11"/>
  <TextBlock x:Name="ServerAddressText" Text="127.0.0.1:22003" FontSize="16" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,3,0,8"/>
  </StackPanel>
- <StackPanel Grid.Row="1"><TextBlock Text="ИГРОКОВ ОНЛАЙН" Foreground="#8EAFC0" FontSize="11"/><TextBlock Text="— / —" FontSize="16" Margin="0,3,0,0"/></StackPanel>
- <StackPanel Grid.Row="1" Grid.Column="1"><TextBlock Text="СТАТУС" Foreground="#8EAFC0" FontSize="11"/><TextBlock Text="Неизвестен" FontSize="15" Margin="0,3,0,0"/></StackPanel>
+ <StackPanel Grid.Row="1"><TextBlock Text="ИГРОКОВ ОНЛАЙН" Foreground="#8EAFC0" FontSize="11"/><TextBlock x:Name="ServerPlayersText" Text="— / —" FontSize="16" Margin="0,3,0,0"/></StackPanel>
+ <StackPanel Grid.Row="1" Grid.Column="1"><TextBlock Text="СТАТУС" Foreground="#8EAFC0" FontSize="11"/><TextBlock x:Name="ServerStateText" Text="Проверка…" FontSize="15" Margin="0,3,0,0"/></StackPanel>
  </Grid>
+ <StackPanel Grid.Row="1" VerticalAlignment="Bottom" Margin="0,0,0,8"><TextBlock x:Name="ServerNameText" Text="MARCH ROLE PLAY" FontSize="12" Foreground="#B4CFDA" TextTrimming="CharacterEllipsis"/><TextBlock Text="ВЕРСИЯ MTA" Foreground="#8EAFC0" FontSize="10" Margin="0,5,0,0"/><TextBlock x:Name="ServerVersionText" Text="—" FontSize="13"/></StackPanel>
  <Button Grid.Row="2" Content="🔗  ПОДКЛЮЧИТЬСЯ" Height="48" Style="{StaticResource GlowButton}" FontSize="14" FontWeight="Bold" Click="PlayButton_Click"/>
  </Grid></Border>
  <Border Grid.Row="1" Grid.Column="0" Margin="0,12,0,0" CornerRadius="15" Background="#F0081922" BorderBrush="#24515D" BorderThickness="1" Padding="19,15">
