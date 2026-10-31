@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         LoadSettings();
+        RefreshServerAddress();
     }
 
     private void LoadSettings()
@@ -77,6 +78,14 @@ public partial class MainWindow : Window
             StatusText.Text = "Не удалось открыть MTA: " + ex.Message +
                 ". Установи MTA и запусти её хотя бы один раз.";
         }
+    }
+
+    private void ConnectionTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => RefreshServerAddress();
+
+    private void RefreshServerAddress()
+    {
+        if (ServerAddressText is null || HostBox is null || PortBox is null) return;
+        ServerAddressText.Text = $"{HostBox.Text.Trim()}:{PortBox.Text.Trim()}";
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
