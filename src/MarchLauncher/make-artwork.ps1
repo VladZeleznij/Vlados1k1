@@ -49,20 +49,18 @@ try {
  $gfx.DrawImage($city,([System.Drawing.Rectangle]::new(0,0,$width,$height)))
  $carX=550; $carY=225; $carW=850; $carH=475
  # Feather the car photo into the city with a gradual alpha mask.
- $carScaled=[System.Drawing.Bitmap]::new($car,$carW,$carH)
- for($xx=0;$xx -lt $carW;$xx++){
-  $edge=[Math]::Min(1.0, [Math]::Min($xx/240.0,($carW-1-$xx)/80.0))
-  for($yy=0;$yy -lt $carH;$yy++){
-   $v=[Math]::Min(1.0,[Math]::Min($yy/115.0,($carH-1-$yy)/90.0))
-   $p=$carScaled.GetPixel($xx,$yy)
-   $a=[int](230*[Math]::Max(0,$edge)*[Math]::Max(0,$v))
-   $carScaled.SetPixel($xx,$yy,[System.Drawing.Color]::FromArgb($a,$p.R,$p.G,$p.B))
-  }
- }
- $gfx.DrawImage($carScaled,$carX,$carY,$carW,$carH)
+ $attrs=[System.Drawing.Imaging.ImageAttributes]::new()
+ $matrix=[System.Drawing.Imaging.ColorMatrix]::new()
+ $matrix.Matrix33=0.78
+ $attrs.SetColorMatrix($matrix)
+ $gfx.DrawImage($car,([System.Drawing.Rectangle]::new($carX,$carY,$carW,$carH)),0,0,$car.Width,$car.Height,[System.Drawing.GraphicsUnit]::Pixel,$attrs)
+ $attrs.Dispose()
+ $fade=[System.Drawing.Drawing2D.LinearGradientBrush]::new(([System.Drawing.Rectangle]::new(350,170,580,530)),[System.Drawing.Color]::FromArgb(235,4,16,25),[System.Drawing.Color]::FromArgb(0,4,16,25),0)
+ $gfx.FillRectangle($fade,350,170,580,530)
+ $fade.Dispose()
  $shade=[System.Drawing.Drawing2D.LinearGradientBrush]::new(([System.Drawing.Rectangle]::new(0,0,$width,$height)),[System.Drawing.Color]::FromArgb(190,1,9,17),[System.Drawing.Color]::FromArgb(20,2,11,20),0)
  $gfx.FillRectangle($shade,0,0,$width,$height)
- $shade.Dispose();$gfx.Dispose();$carScaled.Dispose();$car.Dispose();$city.Dispose()
+ $shade.Dispose();$gfx.Dispose();$car.Dispose();$city.Dispose()
  $canvas.Save((Join-Path $root 'hero.jpg'),[System.Drawing.Imaging.ImageFormat]::Jpeg)
  $canvas.Dispose()
  Write-Host 'Composed city and sports-car hero image.'
