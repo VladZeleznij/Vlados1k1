@@ -43,13 +43,13 @@
  <Border Grid.Row="0" Grid.Column="0" CornerRadius="10" BorderBrush="#1B5964" BorderThickness="1" ClipToBounds="True">
  <Grid>
  <Grid.Background><ImageBrush ImageSource="/city-bg.png" Stretch="UniformToFill"/></Grid.Background>
- <Rectangle Fill="#A0061720" IsHitTestVisible="False"/>
+ <Rectangle IsHitTestVisible="False"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#CC06131C" Offset="0"/><GradientStop Color="#7706131C" Offset=".48"/><GradientStop Color="#1806131C" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
 
- <StackPanel Margin="30" VerticalAlignment="Center" Background="#6606131C">
- <TextBlock Text="MARCH" Foreground="{StaticResource Aqua}" FontSize="72" FontWeight="Black" FontStyle="Italic"/>
+ <StackPanel Margin="30,24,30,20" VerticalAlignment="Top" HorizontalAlignment="Left">
+ <TextBlock Text="MARCH" Foreground="{StaticResource Aqua}" FontSize="62" FontWeight="Black" FontStyle="Italic"/>
  <TextBlock Text="R O L E   P L A Y" FontSize="19" FontWeight="Bold" Margin="8,-10,0,15"/>
- <TextBlock Text="ТВОЙ НОВЫЙ МИР" FontSize="19" FontWeight="Bold" Margin="8,15,0,5"/>
- <TextBlock Text="Уникальный мир, где ты можешь быть кем угодно" FontSize="13" Foreground="#D5E6EB" Margin="8,0,0,0" TextWrapping="Wrap"/>
+ <TextBlock Text="ТВОЙ НОВЫЙ МИР" FontSize="18" FontWeight="Bold" Margin="8,9,0,5"/>
+ <TextBlock Text="Уникальный мир, где ты можешь быть кем угодно" FontSize="12" Foreground="#D5E6EB" Margin="8,0,0,0" TextWrapping="Wrap"/>
  </StackPanel>
  </Grid></Border>
  <Border Grid.Row="0" Grid.Column="2" CornerRadius="10" Background="#EF081B25" BorderBrush="#1B4E5A" BorderThickness="1" Padding="17">
