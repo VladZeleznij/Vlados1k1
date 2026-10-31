@@ -9,5 +9,6 @@
     <AssemblyName>MARCH ROLE PLAY Launcher</AssemblyName>
     <RootNamespace>MarchLauncher</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>march.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>
