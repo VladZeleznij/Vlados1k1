@@ -11,4 +11,5 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>march.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup><Resource Include="city-bg.png" /></ItemGroup>
 </Project>
