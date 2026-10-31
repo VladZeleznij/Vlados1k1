@@ -28,7 +28,7 @@ jobs:
         shell: pwsh
         run: ./src/MarchLauncher/make-background.ps1
       - name: Publish self-contained launcher
-        run: dotnet publish src/MarchLauncher/MarchLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
+        run: dotnet publish src/MarchLauncher/MarchLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o publish
       - name: Upload launcher artifact
         uses: actions/upload-artifact@v4
         with:
