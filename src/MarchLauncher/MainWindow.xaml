@@ -5,8 +5,10 @@
  <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.55" DecelerationRatio=".8"/>
  </Storyboard></BeginStoryboard></EventTrigger></Window.Triggers>
  <Window.Resources>
- <SolidColorBrush x:Key="Aqua" Color="#12D9D6"/>
- <Style TargetType="Button"><Setter Property="Cursor" Value="Hand"/><Setter Property="Foreground" Value="#D6E9F1"/><Setter Property="Background" Value="#142B38"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="12,10"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Opacity" Value=".75"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+ <SolidColorBrush x:Key="Aqua" Color="#0CF1ED"/>
+ <DropShadowEffect x:Key="NeonGlow" Color="#00F3EF" BlurRadius="18" ShadowDepth="0" Opacity=".58"/>
+ <Style x:Key="GlowButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Setter Property="Background" Value="#06333B"/><Setter Property="Foreground" Value="#E8FFFF"/><Setter Property="BorderBrush" Value="#08D9D8"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Effect" Value="{StaticResource NeonGlow}"/></Style>
+ <Style TargetType="Button"><Setter Property="Cursor" Value="Hand"/><Setter Property="Foreground" Value="#D6E9F1"/><Setter Property="Background" Value="#142B38"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="12,10"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Opacity" Value=".75"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
  <Style TargetType="TextBox"><Setter Property="Background" Value="#091D29"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="#275164"/><Setter Property="Padding" Value="12"/><Setter Property="FontSize" Value="14"/></Style>
  <Style TargetType="PasswordBox"><Setter Property="Background" Value="#091D29"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="#275164"/><Setter Property="Padding" Value="12"/></Style>
  </Window.Resources>
@@ -14,11 +16,11 @@
  <Grid>
  <Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#07131C" Offset="0"/><GradientStop Color="#031017" Offset=".55"/><GradientStop Color="#061A24" Offset="1"/></LinearGradientBrush></Grid.Background>
  <Grid.ColumnDefinitions><ColumnDefinition Width="270"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
- <Border Grid.Column="0" BorderBrush="#1C3C4A" BorderThickness="0,0,1,0"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#071A24" Offset="0"/><GradientStop Color="#041018" Offset=".65"/><GradientStop Color="#102D3C" Offset="1"/></LinearGradientBrush></Border.Background>
- <Grid Margin="17,22"><Grid.RowDefinitions><RowDefinition Height="130"/><RowDefinition Height="*"/><RowDefinition Height="180"/></Grid.RowDefinitions>
+ <Border Grid.Column="0" BorderBrush="#1C3C4A" BorderThickness="0,0,1,0"><Border.Background><ImageBrush ImageSource="/news1.jpg" Stretch="UniformToFill" Opacity=".30"/></Border.Background>
+ <Grid Margin="17,22"><Grid.Background><SolidColorBrush Color="#C8031018"/></Grid.Background><Grid.RowDefinitions><RowDefinition Height="130"/><RowDefinition Height="*"/><RowDefinition Height="180"/></Grid.RowDefinitions>
  <StackPanel VerticalAlignment="Top"><TextBlock Text="MARCH" FontSize="46" FontWeight="Black" FontStyle="Italic" Foreground="{StaticResource Aqua}"/><TextBlock Text="R O L E  P L A Y" Margin="5,-5,0,0" FontSize="12" Foreground="White"/></StackPanel>
  <StackPanel Grid.Row="1" VerticalAlignment="Top">
- <Button Content="⌂   Главная" Background="#085C68" Foreground="White" FontSize="16" HorizontalContentAlignment="Left" Height="49"/>
+ <Button Content="⌂   Главная" Background="#007D89" Effect="{StaticResource NeonGlow}" Foreground="White" FontSize="16" HorizontalContentAlignment="Left" Height="49"/>
  <Button Content="▤   Новости" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="NewsButton_Click"/>
  <Button Content="✦   Промокоды" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="PromoButton_Click"/>
  <Button Content="♙   Личный кабинет" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="AccountButton_Click"/>
@@ -40,19 +42,19 @@
  <Grid Grid.Row="1" Margin="16,12,16,16">
  <Grid.ColumnDefinitions><ColumnDefinition Width="1.85*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
  <Grid.RowDefinitions><RowDefinition Height="1.05*"/><RowDefinition Height="1.55*"/><RowDefinition Height="86"/></Grid.RowDefinitions>
- <Border Grid.Row="0" Grid.Column="0" CornerRadius="10" BorderBrush="#1B5964" BorderThickness="1" ClipToBounds="True">
+ <Border Grid.Row="0" Grid.Column="0" CornerRadius="15" BorderBrush="#13D4D0" BorderThickness="1" ClipToBounds="True">
  <Grid>
  <Grid.Background><ImageBrush ImageSource="/hero.jpg" Stretch="UniformToFill"/></Grid.Background>
  <Rectangle IsHitTestVisible="False"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#CC06131C" Offset="0"/><GradientStop Color="#7706131C" Offset=".48"/><GradientStop Color="#1806131C" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
 
  <StackPanel Margin="30,24,30,20" VerticalAlignment="Top" HorizontalAlignment="Left">
- <TextBlock Text="MARCH" Foreground="{StaticResource Aqua}" FontSize="78" FontWeight="Black" FontStyle="Italic"><TextBlock.Effect><DropShadowEffect Color="#021018" BlurRadius="14" ShadowDepth="3" Opacity=".95"/></TextBlock.Effect></TextBlock>
+ <TextBlock Text="MARCH" Foreground="{StaticResource Aqua}" FontSize="90" FontWeight="Black" FontStyle="Italic"><TextBlock.Effect><DropShadowEffect Color="#00F5F0" BlurRadius="15" ShadowDepth="0" Opacity=".6"/></TextBlock.Effect></TextBlock>
  <TextBlock Text="R O L E   P L A Y" FontSize="19" FontWeight="Bold" Margin="8,-10,0,15"/>
  
  <TextBlock Text="Уникальный мир, где ты можешь быть кем угодно" FontSize="14" Foreground="#F0F8FA" Margin="8,34,0,0" TextWrapping="Wrap"/>
  </StackPanel>
  </Grid></Border>
- <Border Grid.Row="0" Grid.Column="2" CornerRadius="10" Background="#F5081922" BorderBrush="#1B4E5A" BorderThickness="1" Padding="17">
+ <Border Grid.Row="0" Grid.Column="2" CornerRadius="15" Background="#F5081922" BorderBrush="#10C8C8" BorderThickness="1" Padding="17">
  <Grid>
  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
  <StackPanel>
@@ -69,9 +71,9 @@
  <StackPanel Grid.Row="1"><TextBlock Text="ИГРОКОВ ОНЛАЙН" Foreground="#8EAFC0" FontSize="11"/><TextBlock Text="— / —" FontSize="16" Margin="0,3,0,0"/></StackPanel>
  <StackPanel Grid.Row="1" Grid.Column="1"><TextBlock Text="СТАТУС" Foreground="#8EAFC0" FontSize="11"/><TextBlock Text="Неизвестен" FontSize="15" Margin="0,3,0,0"/></StackPanel>
  </Grid>
- <Button Grid.Row="2" Content="▶  ПОДКЛЮЧИТЬСЯ" Height="43" Background="#00B8B5" Foreground="#031923" FontSize="14" FontWeight="Bold" Click="PlayButton_Click"/>
+ <Button Grid.Row="2" Content="🔗  ПОДКЛЮЧИТЬСЯ" Height="48" Style="{StaticResource GlowButton}" FontSize="14" FontWeight="Bold" Click="PlayButton_Click"/>
  </Grid></Border>
- <Border Grid.Row="1" Grid.Column="0" Margin="0,12,0,0" CornerRadius="12" Background="#F0081922" BorderBrush="#176173" BorderThickness="1" Padding="16,12">
+ <Border Grid.Row="1" Grid.Column="0" Margin="0,12,0,0" CornerRadius="15" Background="#F0081922" BorderBrush="#12BFC0" BorderThickness="1" Padding="16,12">
  <Grid>
  <Grid.RowDefinitions><RowDefinition Height="39"/><RowDefinition Height="*"/></Grid.RowDefinitions>
  <DockPanel><TextBlock Text="▤   Последние новости" FontSize="19" FontWeight="SemiBold"/><TextBlock Text="Все новости  →" Foreground="#15D9DA" HorizontalAlignment="Right" Margin="28,4,0,0"/></DockPanel>
@@ -95,7 +97,7 @@
  </Grid></Border>
  </StackPanel></ScrollViewer>
  </Grid></Border>
- <Border Grid.Row="1" Grid.Column="2" Margin="0,12,0,0" CornerRadius="10" Background="#F5081922" BorderBrush="#1B4E5A" BorderThickness="1" Padding="14">
+ <Border Grid.Row="1" Grid.Column="2" Margin="0,12,0,0" CornerRadius="15" Background="#F5081922" BorderBrush="#12BFC0" BorderThickness="1" Padding="14">
  <TabControl x:Name="RightTabs" Background="Transparent" BorderThickness="0" Foreground="White">
  <TabControl.Resources>
  <Style TargetType="TabItem"><Setter Property="Foreground" Value="#B4D1E0"/><Setter Property="FontSize" Value="14"/><Setter Property="Padding" Value="13,10"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem"><Border x:Name="TabBorder" BorderBrush="#174A58" BorderThickness="0,0,0,2" Background="Transparent" Padding="{TemplateBinding Padding}"><ContentPresenter ContentSource="Header" HorizontalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="TabBorder" Property="BorderBrush" Value="#12D9D6"/><Setter Property="Foreground" Value="#12D9D6"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
@@ -132,8 +134,8 @@
  </StackPanel></TabItem>
  </TabControl>
  </Border>
- <Border Grid.Row="2" Grid.Column="0" Margin="0,12,0,0" CornerRadius="10" Background="#E3081B25" BorderBrush="#1B4E5A" BorderThickness="1" Padding="15">
- <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="55"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⇩" FontSize="31" Foreground="{StaticResource Aqua}" VerticalAlignment="Center" HorizontalAlignment="Center"/><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="Проверка обновлений не настроена" FontWeight="SemiBold" Foreground="#D6F0F4"/><TextBlock x:Name="StatusText" Text="Для запуска нажми «ИГРАТЬ»" Foreground="#9BB6C4" Margin="0,6,0,0" TextWrapping="Wrap"/></StackPanel></Grid></Border>
- <Button Grid.Row="2" Grid.Column="2" x:Name="PlayButton" Content="▶   ИГРАТЬ" Background="#00B8B5" Foreground="#031923" FontSize="23" FontWeight="Bold" Margin="0,12,0,0" Click="PlayButton_Click"/>
+ <Border Grid.Row="2" Grid.Column="0" Margin="0,12,0,0" CornerRadius="15" Background="#E3081B25" BorderBrush="#12BFC0" BorderThickness="1" Padding="15">
+ <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="55"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⇩" FontSize="31" Foreground="{StaticResource Aqua}" VerticalAlignment="Center" HorizontalAlignment="Center"/><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="Проверка обновлений пока недоступна" FontWeight="SemiBold" Foreground="#D6F0F4"/><TextBlock x:Name="StatusText" Text="Для запуска нажми «ИГРАТЬ»" Foreground="#9BB6C4" Margin="0,6,0,0" TextWrapping="Wrap"/></StackPanel></Grid></Border>
+ <Button Grid.Row="2" Grid.Column="2" x:Name="PlayButton" Content="▶   ИГРАТЬ" Effect="{StaticResource NeonGlow}" Background="#00E5DF" Foreground="#031923" FontSize="23" FontWeight="Bold" Margin="0,12,0,0" Click="PlayButton_Click"/>
  </Grid></Grid></Grid></Border>
 </Window>
