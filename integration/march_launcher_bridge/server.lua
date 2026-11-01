@@ -11,6 +11,10 @@ local COOLDOWN_MS = 4500
 local function respond(id, ok, message)
     if type(id) ~= "string" or not id:match("^[a-fA-F0-9]+$") or #id ~= 32 then return end
     local payload = toJSON({ id = id, ok = ok, message = message }, true)
+    -- MTA may wrap tables in an outer JSON array; the receiver accepts an object.
+    if payload and payload:sub(1, 1) == "[" then
+        payload = payload:sub(2, -2)
+    end
     fetchRemote(endpoint .. "/result", {
         method = "POST",
         postData = payload,
@@ -68,7 +72,7 @@ local function apply(player, payload)
         return
     end
     -- Standard onPlayerLogin fires for existing systems such as ACL, HUD and apartments.
-    setElementData(player, "march:launcherAuth", true, false)
+    setElementData(player, "march:launcherAuth", true)
     triggerClientEvent(player, "march_launcher_auth:authenticated", resourceRoot, name)
     respond(id, true, mode == "register"
         and "registration_success"
@@ -92,10 +96,15 @@ addEventHandler("onPlayerJoin", root, function()
             connectionAttempts = 1,
             connectTimeout = 3000,
             queueName = "march_launcher_auth"
-        }, function(data, status)
-            if not isElement(player) or status ~= 0 or type(data) ~= "string" then return end
+        }, function(data, responseInfo)
+            local success = (type(responseInfo) == "table" and responseInfo.success == true)
+                or (type(responseInfo) == "number" and responseInfo == 0)
+            if not isElement(player) or not success or type(data) ~= "string" then return end
             local payload = fromJSON(data)
-            apply(player, payload)
+            -- A nested fetchRemote from inside this callback is unsupported by MTA.
+            setTimer(function()
+                if isElement(player) then apply(player, payload) end
+            end, 50, 1)
         end)
     end, 1200, 1)
 end)
