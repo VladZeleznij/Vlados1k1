@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows.Threading;
@@ -14,17 +15,21 @@ public partial class MainWindow : Window
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "MARCH ROLE PLAY", "launcher-settings.json");
 
+    private readonly DiscordPresence _discordPresence = new();
     private readonly DispatcherTimer _monitorTimer = new() { Interval = TimeSpan.FromSeconds(20) };
     private bool _checkingServer;
 
     public MainWindow()
     {
         InitializeComponent();
+        _discordPresence.StatusChanged += message =>
+            Dispatcher.BeginInvoke(new Action(() => DiscordPresenceText.Text = message));
         LoadSettings();
+        _discordPresence.Configure(DiscordAppIdBox.Text);
         _monitorTimer.Tick += async (_, _) => await UpdateServerStatusAsync();
         _monitorTimer.Start();
         Loaded += async (_, _) => await UpdateServerStatusAsync();
-        Closed += (_, _) => _monitorTimer.Stop();
+        Closed += (_, _) => { _monitorTimer.Stop(); _discordPresence.Dispose(); };
     }
 
     private async Task UpdateServerStatusAsync()
@@ -94,6 +99,10 @@ public partial class MainWindow : Window
             var settings = JsonSerializer.Deserialize<LauncherSettings>(File.ReadAllText(_settingsFile));
             if (settings is null) return;
             MtaPathBox.Text = settings.MtaPath ?? "";
+            DiscordAppIdBox.Text = settings.DiscordAppId ?? "";
+            TelegramUrlBox.Text = settings.TelegramUrl ?? "";
+            VkUrlBox.Text = settings.VkUrl ?? "";
+            DiscordInviteBox.Text = settings.DiscordInviteUrl ?? "";
         }
         catch { StatusText.Text = "Не удалось прочитать сохранённые настройки"; }
     }
@@ -101,9 +110,74 @@ public partial class MainWindow : Window
     private void SaveSettings()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_settingsFile)!);
-        var settings = new LauncherSettings(MtaPathBox.Text.Trim(), "127.0.0.1", 22003);
+        var settings = new LauncherSettings(MtaPathBox.Text.Trim(), "127.0.0.1", 22003,
+            DiscordAppIdBox.Text.Trim(), TelegramUrlBox.Text.Trim(),
+            VkUrlBox.Text.Trim(), DiscordInviteBox.Text.Trim());
         File.WriteAllText(_settingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
     }
+
+    private static bool ValidCommunityLink(string value, params string[] domains)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return true;
+        return Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri) &&
+            uri.Scheme == Uri.UriSchemeHttps &&
+            domains.Any(domain => string.Equals(uri.Host, domain, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void SaveCommunityButton_Click(object sender, RoutedEventArgs e)
+    {
+        var appId = DiscordAppIdBox.Text.Trim();
+        if (appId.Length > 0 && !Regex.IsMatch(appId, @"^\d{17,20}$"))
+        {
+            StatusText.Text = "Discord Application ID должен содержать 17–20 цифр.";
+            DiscordAppIdBox.Focus();
+            return;
+        }
+        if (!ValidCommunityLink(TelegramUrlBox.Text, "t.me", "telegram.me") ||
+            !ValidCommunityLink(VkUrlBox.Text, "vk.com", "m.vk.com") ||
+            !ValidCommunityLink(DiscordInviteBox.Text, "discord.gg", "discord.com"))
+        {
+            StatusText.Text = "Укажи ссылки HTTPS на t.me, vk.com и discord.gg.";
+            return;
+        }
+        try
+        {
+            SaveSettings();
+            _discordPresence.Configure(appId);
+            StatusText.Text = "Настройки сообществ и Discord сохранены.";
+        }
+        catch (Exception ex) { StatusText.Text = "Не удалось сохранить настройки: " + ex.Message; }
+    }
+
+    private void OpenCommunity(string network, string link, params string[] allowedDomains)
+    {
+        if (string.IsNullOrWhiteSpace(link))
+        {
+            RightTabs.SelectedIndex = 2;
+            StatusText.Text = "Добавь ссылку " + network + " в настройках лаунчера.";
+            return;
+        }
+        if (!ValidCommunityLink(link, allowedDomains))
+        {
+            StatusText.Text = "Неверная ссылка " + network + ". Исправь её в настройках.";
+            RightTabs.SelectedIndex = 2;
+            return;
+        }
+        try
+        {
+            Process.Start(new ProcessStartInfo(link.Trim()) { UseShellExecute = true });
+        }
+        catch (Exception ex) { StatusText.Text = "Не удалось открыть " + network + ": " + ex.Message; }
+    }
+
+    private void TelegramButton_Click(object sender, RoutedEventArgs e) =>
+        OpenCommunity("Telegram", TelegramUrlBox.Text, "t.me", "telegram.me");
+
+    private void VkButton_Click(object sender, RoutedEventArgs e) =>
+        OpenCommunity("ВКонтакте", VkUrlBox.Text, "vk.com", "m.vk.com");
+
+    private void DiscordButton_Click(object sender, RoutedEventArgs e) =>
+        OpenCommunity("Discord", DiscordInviteBox.Text, "discord.gg", "discord.com");
 
     private void BrowseButton_Click(object sender, RoutedEventArgs e)
     {
@@ -150,5 +224,10 @@ public partial class MainWindow : Window
     private void AccountButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 0; StatusText.Text = "Авторизация появится после подключения march_auth."; }
     private void SettingsButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 2; MtaPathBox.Focus(); StatusText.Text = "Настройки сервера находятся справа."; }
 
-    private sealed record LauncherSettings(string MtaPath, string Host, int Port);
+    private sealed record LauncherSettings(
+        string MtaPath, string Host, int Port,
+        string? DiscordAppId = null,
+        string? TelegramUrl = null,
+        string? VkUrl = null,
+        string? DiscordInviteUrl = null);
 }
