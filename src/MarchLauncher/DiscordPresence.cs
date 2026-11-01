@@ -15,6 +15,23 @@ internal sealed class DiscordPresence : IDisposable
 {
     private CancellationTokenSource? _source;
     private readonly long _startedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    private readonly SemaphoreSlim _onlineChanged = new(0, 1);
+    private string _serverOnline = "Онлайн сервера: проверка...";
+
+    /// <summary>Receives the same verified online counts as the MTA monitor.</summary>
+    public void UpdateServerOnline(int? online, int? maximum)
+    {
+        var next = online.HasValue && maximum.HasValue
+            ? $"Онлайн сервера: {online.Value} / {maximum.Value}"
+            : "Сервер недоступен";
+        if (string.Equals(Volatile.Read(ref _serverOnline), next, StringComparison.Ordinal))
+            return;
+
+        Volatile.Write(ref _serverOnline, next);
+        // Wake the Discord IPC sender immediately when real online counts change.
+        if (_onlineChanged.CurrentCount == 0)
+            _onlineChanged.Release();
+    }
     public event Action<string>? StatusChanged;
 
     public void Configure(string? applicationId)
@@ -71,7 +88,7 @@ internal sealed class DiscordPresence : IDisposable
                                     activity = new
                                     {
                                         details = "В лаунчере MARCH ROLE PLAY",
-                                        state = "Готовится к игре",
+                                        state = Volatile.Read(ref _serverOnline),
                                         timestamps = new { start = _startedAt }
                                     }
                                 },
@@ -85,7 +102,7 @@ internal sealed class DiscordPresence : IDisposable
                                     throw new InvalidDataException("Discord не принял активность");
                             }
                             StatusChanged?.Invoke("Discord: активность включена");
-                            await Task.Delay(TimeSpan.FromSeconds(45), ct);
+                            await _onlineChanged.WaitAsync(TimeSpan.FromSeconds(45), ct);
                         }
                     }
                 }
