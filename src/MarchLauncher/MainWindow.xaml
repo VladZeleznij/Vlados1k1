@@ -109,20 +109,27 @@
  <TabItem Header="Вход">
  <StackPanel Margin="9,20,9,0">
  <TextBlock Text="ЛИЧНЫЙ КАБИНЕТ" FontSize="16" FontWeight="Bold" Margin="0,0,0,18"/>
- <TextBox IsEnabled="False" Text="Логин" Height="44" Margin="0,0,0,13"/>
- <PasswordBox IsEnabled="False" Height="44" Margin="0,0,0,13"/>
- <CheckBox IsEnabled="False" Content="Запомнить меня" Foreground="#8FAABB" Margin="0,0,0,17"/>
- <Button IsEnabled="False" Content="ВОЙТИ" Height="46" Background="#00B8B5" Foreground="#061822" FontSize="16" FontWeight="Bold"/>
- <TextBlock Text="Вход будет доступен после подключения API сервера march_auth." Foreground="#92B4C1" TextWrapping="Wrap" FontSize="12" Margin="0,20,0,0"/>
+ <TextBlock Text="ЛОГИН" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,6"/>
+ <TextBox x:Name="LoginUsernameBox" Height="44" MaxLength="24" Margin="0,0,0,13"/>
+ <TextBlock Text="ПАРОЛЬ" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,6"/>
+ <PasswordBox x:Name="LoginPasswordBox" Height="44" Margin="0,0,0,13"/>
+ <CheckBox x:Name="RememberLoginBox" Content="Запомнить логин" Foreground="#8FAABB" Margin="0,0,0,17"/>
+ <Button x:Name="LoginActionButton" Content="ВОЙТИ" Height="46" Background="#00B8B5" Foreground="#061822" FontSize="16" FontWeight="Bold" Click="LoginActionButton_Click"/>
+ <TextBlock x:Name="LauncherLoginStatusText" Text="Для входа введи данные, затем нажми «Играть». Повторно вводить пароль в MTA не потребуется при работающем локальном мосте."
+ Foreground="#92B4C1" TextWrapping="Wrap" FontSize="12" Margin="0,15,0,0"/>
  </StackPanel></TabItem>
  <TabItem Header="Регистрация">
  <StackPanel Margin="9,20,9,0">
  <TextBlock Text="СОЗДАТЬ АККАУНТ" FontSize="16" FontWeight="Bold" Margin="0,0,0,16"/>
- <TextBox IsEnabled="False" Text="Логин" Height="42" Margin="0,0,0,12"/>
- <PasswordBox IsEnabled="False" Height="42" Margin="0,0,0,12"/>
- <PasswordBox IsEnabled="False" Height="42" Margin="0,0,0,16"/>
- <Button IsEnabled="False" Content="ЗАРЕГИСТРИРОВАТЬСЯ" Height="45" Background="#00B8B5"/>
- <TextBlock Text="Регистрация появится после настройки безопасного серверного API." Foreground="#92B4C1" TextWrapping="Wrap" FontSize="12" Margin="0,16,0,0"/>
+ <TextBlock Text="НОВЫЙ ЛОГИН" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,5"/>
+ <TextBox x:Name="RegisterUsernameBox" Height="42" MaxLength="24" Margin="0,0,0,11"/>
+ <TextBlock Text="ПАРОЛЬ (ОТ 8 СИМВОЛОВ)" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,5"/>
+ <PasswordBox x:Name="RegisterPasswordBox" Height="42" Margin="0,0,0,11"/>
+ <TextBlock Text="ПОВТОРИ ПАРОЛЬ" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,5"/>
+ <PasswordBox x:Name="RegisterRepeatPasswordBox" Height="42" Margin="0,0,0,15"/>
+ <Button x:Name="RegisterActionButton" Content="ЗАРЕГИСТРИРОВАТЬСЯ" Height="45" Background="#00B8B5" Foreground="#061822" FontWeight="Bold" Click="RegisterActionButton_Click"/>
+ <TextBlock x:Name="LauncherRegisterStatusText" Text="Аккаунт будет создан на MTA-сервере при подключении, а не в отдельной базе лаунчера."
+ Foreground="#92B4C1" TextWrapping="Wrap" FontSize="12" Margin="0,16,0,0"/>
  </StackPanel></TabItem>
  <TabItem Header="Настройки"><ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
  <StackPanel Margin="9,16,16,10">
