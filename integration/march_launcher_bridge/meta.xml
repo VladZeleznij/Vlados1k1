@@ -1,0 +1,9 @@
+<meta>
+    <info author="MARCH ROLE PLAY" name="MARCH | Launcher Auth Bridge" version="0.1.0" type="script" description="Loopback-only launcher handoff for native MTA accounts"/>
+    <script src="server.lua" type="server"/>
+    <script src="client.lua" type="client" cache="false"/>
+    <aclrequest>
+        <right name="function.logIn" access="true"/>
+        <right name="function.addAccount" access="true"/>
+    </aclrequest>
+</meta>
