@@ -49,6 +49,15 @@ local function apply(player, payload)
 
     local account
     if mode == "register" then
+        -- Never accidentally create a second native account while march_auth
+        -- maintains a separate SQLite user store. The existing auth owner
+        -- must handle registration and login through its own trusted API.
+        local auth = getResourceFromName("march_auth")
+        if auth and getResourceState(auth) == "running" and
+            fileExists(":march_auth/march_accounts.db") then
+            respond(id, false, "custom_auth_not_integrated")
+            return
+        end
         if getAccount(name) then
             respond(id, false, "username_exists")
             return
