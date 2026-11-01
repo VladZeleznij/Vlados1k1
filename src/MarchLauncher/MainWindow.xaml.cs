@@ -215,16 +215,21 @@ public partial class MainWindow : Window
         }
     }
 
-    private static bool ValidateCredentials(string username, string password, out string error)
+    private static bool ValidateCredentials(string mode, string username, string password, out string error)
     {
         if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^[A-Za-z0-9_]{3,20}$"))
         {
             error = "Логин: 3–20 символов, латинские буквы, цифры или _.";
             return false;
         }
-        if (password.Length < 8 || password.Length > 64)
+        // march_auth v1.5.2 accepts 1–64 characters for existing native MTA
+        // accounts, but requires 8–64 for new SQLite/bcrypt registrations.
+        var minimumPasswordLength = mode == "register" ? 8 : 1;
+        if (password.Length < minimumPasswordLength || password.Length > 64)
         {
-            error = "Пароль должен содержать от 8 до 64 символов.";
+            error = mode == "register"
+                ? "Для регистрации пароль должен содержать от 8 до 64 символов."
+                : "Пароль должен содержать от 1 до 64 символов.";
             return false;
         }
         error = "";
@@ -241,7 +246,7 @@ public partial class MainWindow : Window
             return;
         }
         username = username.Trim();
-        if (!ValidateCredentials(username, password, out var error))
+        if (!ValidateCredentials(mode, username, password, out var error))
         {
             target.Text = error;
             return;
