@@ -186,6 +186,7 @@ public partial class MainWindow : Window
             "login_success" => "Вход выполнен! MTA авторизовал тебя автоматически.",
             "registration_success" => "Аккаунт создан и вход в MTA выполнен!",
             "username_exists" => "Этот логин уже занят. Выбери другой.",
+            "custom_auth_not_integrated" => "Регистрация через лаунчер требует подключения к существующей базе march_auth. Новая база не создана.",
             "invalid_credentials" => "Проверь логин и пароль.",
             "invalid_credentials_or_external_db" =>
                 "Логин не подтверждён. Возможно, сервер использует отдельную базу march_auth.",
