@@ -192,6 +192,11 @@ public partial class MainWindow : Window
                 "Логин не подтверждён. Возможно, сервер использует отдельную базу march_auth.",
             "missing_acl" => "Серверу не хватает ACL-права function.addAccount.",
             "auth_denied" => "Вход отклонён сервером. Проверь права function.logIn.",
+            "db_unavailable" => "База аккаунтов march_auth недоступна.",
+            "db_error" => "Ошибка чтения базы аккаунтов march_auth.",
+            "hash_error" => "Не удалось обработать пароль для регистрации.",
+            "already_logged_in" => "Аккаунт уже авторизован в игре.",
+            "invalid_request" => "Неправильный запрос авторизации.",
             _ => "Ответ сервера: " + code
         };
     }
@@ -212,14 +217,14 @@ public partial class MainWindow : Window
 
     private static bool ValidateCredentials(string username, string password, out string error)
     {
-        if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^[A-Za-z0-9_]{3,24}$"))
+        if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^[A-Za-z0-9_]{3,20}$"))
         {
-            error = "Логин: 3–24 символа, латинские буквы, цифры или _.";
+            error = "Логин: 3–20 символов, латинские буквы, цифры или _.";
             return false;
         }
-        if (password.Length < 8 || password.Length > 128)
+        if (password.Length < 8 || password.Length > 64)
         {
-            error = "Пароль должен содержать от 8 до 128 символов.";
+            error = "Пароль должен содержать от 8 до 64 символов.";
             return false;
         }
         error = "";
