@@ -1,6 +1,7 @@
-<Window x:Class="MarchLauncher.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+<Window x:Class="MarchLauncher.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
  Title="MARCH ROLE PLAY" Width="1536" Height="930" MinWidth="1200" MinHeight="800" WindowStartupLocation="CenterScreen"
  WindowStyle="None" ResizeMode="CanResize" AllowsTransparency="False" Background="#071018" Foreground="White" Opacity="0">
+ <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/></shell:WindowChrome.WindowChrome>
  <Window.Triggers><EventTrigger RoutedEvent="Window.Loaded"><BeginStoryboard><Storyboard>
  <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.55" DecelerationRatio=".8"/>
  </Storyboard></BeginStoryboard></EventTrigger></Window.Triggers>
@@ -12,7 +13,7 @@
  <Style TargetType="TextBox"><Setter Property="Background" Value="#091D29"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="#275164"/><Setter Property="Padding" Value="12"/><Setter Property="FontSize" Value="14"/></Style>
  <Style TargetType="PasswordBox"><Setter Property="Background" Value="#091D29"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="#275164"/><Setter Property="Padding" Value="12"/></Style>
  </Window.Resources>
- <Border BorderBrush="#174254" BorderThickness="1">
+ <Border BorderBrush="#174254" BorderThickness="0">
  <Grid>
  <Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#07131C" Offset="0"/><GradientStop Color="#031017" Offset=".55"/><GradientStop Color="#061A24" Offset="1"/></LinearGradientBrush></Grid.Background>
  <Grid.ColumnDefinitions><ColumnDefinition Width="270"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -26,7 +27,8 @@
  <Button Content="♙   Личный кабинет" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="AccountButton_Click"/>
  <Button Content="⚙   Настройки" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="SettingsButton_Click"/>
  </StackPanel>
- <StackPanel Grid.Row="2" VerticalAlignment="Bottom"><TextBlock Text="◉       VK       ➤" FontSize="19" Foreground="#90C3D2" Margin="0,0,0,18"/>
+ <StackPanel Grid.Row="2" VerticalAlignment="Bottom"><StackPanel Orientation="Horizontal" Margin="0,0,0,19"><Button Width="48" Height="43" Margin="0,0,9,0" Padding="10" Background="#142C3B" BorderBrush="#2E6571" BorderThickness="1" ToolTip="Telegram — сообщество MARCH ROLE PLAY" Click="TelegramButton_Click" Cursor="Hand"><Viewbox Width="24" Height="24" Stretch="Uniform"><Path Fill="#30AEE7" Stretch="Uniform" Data="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></Viewbox></Button><Button Width="48" Height="43" Margin="0,0,9,0" Padding="10" Background="#142C3B" BorderBrush="#2E6571" BorderThickness="1" ToolTip="ВКонтакте — сообщество MARCH ROLE PLAY" Click="VkButton_Click" Cursor="Hand"><Viewbox Width="24" Height="24" Stretch="Uniform"><Path Fill="#4A96F2" Stretch="Uniform" Data="m9.489.004.729-.003h3.564l.73.003.914.01.433.007.418.011.403.014.388.016.374.021.36.025.345.03.333.033c1.74.196 2.933.616 3.833 1.516.9.9 1.32 2.092 1.516 3.833l.034.333.029.346.025.36.02.373.025.588.012.41.013.644.009.915.004.98-.001 3.313-.003.73-.01.914-.007.433-.011.418-.014.403-.016.388-.021.374-.025.36-.03.345-.033.333c-.196 1.74-.616 2.933-1.516 3.833-.9.9-2.092 1.32-3.833 1.516l-.333.034-.346.029-.36.025-.373.02-.588.025-.41.012-.644.013-.915.009-.98.004-3.313-.001-.73-.003-.914-.01-.433-.007-.418-.011-.403-.014-.388-.016-.374-.021-.36-.025-.345-.03-.333-.033c-1.74-.196-2.933-.616-3.833-1.516-.9-.9-1.32-2.092-1.516-3.833l-.034-.333-.029-.346-.025-.36-.02-.373-.025-.588-.012-.41-.013-.644-.009-.915-.004-.98.001-3.313.003-.73.01-.914.007-.433.011-.418.014-.403.016-.388.021-.374.025-.36.03-.345.033-.333c.196-1.74.616-2.933 1.516-3.833.9-.9 2.092-1.32 3.833-1.516l.333-.034.346-.029.36-.025.373-.02.588-.025.41-.012.644-.013.915-.009ZM6.79 7.3H4.05c.13 6.24 3.25 9.99 8.72 9.99h.31v-3.57c2.01.2 3.53 1.67 4.14 3.57h2.84c-.78-2.84-2.83-4.41-4.11-5.01 1.28-.74 3.08-2.54 3.51-4.98h-2.58c-.56 1.98-2.22 3.78-3.8 3.95V7.3H10.5v6.92c-1.6-.4-3.62-2.34-3.71-6.92Z"/></Viewbox></Button><Button Width="48" Height="43" Margin="0,0,9,0" Padding="10" Background="#142C3B" BorderBrush="#2E6571" BorderThickness="1" ToolTip="Discord — сообщество MARCH ROLE PLAY" Click="DiscordButton_Click" Cursor="Hand"><Viewbox Width="24" Height="24" Stretch="Uniform"><Path Fill="#8395F9" Stretch="Uniform" Data="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></Viewbox></Button></StackPanel>
+ <TextBlock x:Name="DiscordPresenceText" Text="Discord: укажи Application ID в настройках" Foreground="#7FAAB8" FontSize="11" Margin="0,0,0,14" TextWrapping="Wrap"/>
  <TextBlock Text="БОЛЬШЕ, ЧЕМ ИГРА" Foreground="{StaticResource Aqua}" FontWeight="Bold" FontStyle="Italic" FontSize="19" TextWrapping="Wrap"/>
  <TextBlock Text="ОБЩЕНИЕ  •  РАЗВИТИЕ  •  СВОБОДА" Foreground="#7D9BAC" FontSize="10" TextWrapping="Wrap" Margin="0,12,0,15"/>
  <TextBlock Text="MARCH ROLE PLAY" Foreground="#628396" FontSize="11"/>
@@ -122,17 +124,27 @@
  <Button IsEnabled="False" Content="ЗАРЕГИСТРИРОВАТЬСЯ" Height="45" Background="#00B8B5"/>
  <TextBlock Text="Регистрация появится после настройки безопасного серверного API." Foreground="#92B4C1" TextWrapping="Wrap" FontSize="12" Margin="0,16,0,0"/>
  </StackPanel></TabItem>
- <TabItem Header="Настройки">
- <StackPanel Margin="9,16,9,0">
- <TextBlock Text="ПОДКЛЮЧЕНИЕ К MTA" FontWeight="Bold" FontSize="15" Margin="0,0,0,14"/>
- <TextBlock Text="СЕРВЕР MARCH ROLE PLAY" Foreground="#8DAAB8" FontSize="11"/>
- <TextBlock Text="127.0.0.1:22003" Foreground="#0CF1ED" FontWeight="Bold" FontSize="20" Margin="0,6,0,9"/>
- <TextBlock Text="Адрес сервера установлен автоматически и не изменяется." Foreground="#A5C3CF" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,19"/>
- <TextBlock Text="Папка MTA (необязательно)" Foreground="#8DAAB8" FontSize="11"/>
+ <TabItem Header="Настройки"><ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+ <StackPanel Margin="9,16,16,10">
+ <TextBlock Text="DISCORD RICH PRESENCE" FontWeight="Bold" Foreground="{StaticResource Aqua}" FontSize="15" Margin="0,0,0,8"/>
+ <TextBlock Text="Application ID (из Discord Developer Portal)" Foreground="#9EBCCA" FontSize="11" TextWrapping="Wrap"/>
+ <TextBox x:Name="DiscordAppIdBox" Height="38" Padding="9,8" Margin="0,6,0,5" MaxLength="20"/>
+ <TextBlock Text="Имя приложения в Discord должно быть MARCH ROLE PLAY Launcher. Без Application ID Discord не позволит включить активность." Foreground="#91AEBE" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,13"/>
+ <TextBlock Text="ССЫЛКИ НА СООБЩЕСТВА" FontWeight="Bold" Foreground="{StaticResource Aqua}" FontSize="14" Margin="0,3,0,11"/>
+ <TextBlock Text="Telegram (https://t.me/...)" Foreground="#9EBCCA" FontSize="11"/>
+ <TextBox x:Name="TelegramUrlBox" Height="38" Padding="9,8" Margin="0,5,0,11"/>
+ <TextBlock Text="ВКонтакте (https://vk.com/...)" Foreground="#9EBCCA" FontSize="11"/>
+ <TextBox x:Name="VkUrlBox" Height="38" Padding="9,8" Margin="0,5,0,11"/>
+ <TextBlock Text="Discord (https://discord.gg/...)" Foreground="#9EBCCA" FontSize="11"/>
+ <TextBox x:Name="DiscordInviteBox" Height="38" Padding="9,8" Margin="0,5,0,13"/>
+ <Button Content="СОХРАНИТЬ НАСТРОЙКИ" Background="#00B8B5" Foreground="#031923" Height="43" FontWeight="Bold" Click="SaveCommunityButton_Click" Margin="0,0,0,22"/>
+ <TextBlock Text="ПОДКЛЮЧЕНИЕ К MTA" FontWeight="Bold" Foreground="{StaticResource Aqua}" FontSize="14" Margin="0,0,0,10"/>
+ <TextBlock Text="127.0.0.1:22003" Foreground="#DDF8F8" FontSize="19" FontWeight="Bold"/>
+ <TextBlock Text="Адрес закреплён и не редактируется." Foreground="#91AEBE" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,15"/>
+ <TextBlock Text="Папка MTA (необязательно)" Foreground="#9EBCCA" FontSize="11"/>
  <TextBox x:Name="MtaPathBox" Padding="9,6" FontSize="12" Margin="0,5,0,10"/>
  <Button Content="ВЫБРАТЬ ПАПКУ MTA" Height="38" Click="BrowseButton_Click"/>
- <TextBlock Text="Для подключения нажми «Играть»." Foreground="#7795A6" TextWrapping="Wrap" FontSize="11" Margin="0,16,0,0"/>
- </StackPanel></TabItem>
+ </StackPanel></ScrollViewer></TabItem>
  </TabControl>
  </Border>
  <Border Grid.Row="2" Grid.Column="0" Margin="0,12,0,0" CornerRadius="15" Background="#E3081B25" BorderBrush="#24515D" BorderThickness="1" Padding="15">
