@@ -39,40 +39,40 @@ local function apply(player, payload)
     if type(id) ~= "string" or #id ~= 32 then return end
     if not validName(name) or not validPassword(password) or
         (mode ~= "login" and mode ~= "register") then
-        respond(id, false, "Неверный логин или пароль.")
+        respond(id, false, "invalid_credentials")
         return
     end
 
     local account
     if mode == "register" then
         if getAccount(name) then
-            respond(id, false, "Аккаунт с таким логином уже существует.")
+            respond(id, false, "username_exists")
             return
         end
         account = addAccount(name, password)
         if not account then
-            respond(id, false, "Не удалось создать аккаунт. Проверь ACL.")
+            respond(id, false, "missing_acl")
             return
         end
     else
         account = getAccount(name, password)
         if not account then
-            respond(id, false, "Неверный логин или пароль, либо аккаунт хранится в другой базе.")
+            respond(id, false, "invalid_credentials_or_external_db")
             return
         end
     end
 
     if not isElement(player) then return end
     if not logIn(player, account, password) then
-        respond(id, false, "Сервер отклонил вход. Проверь ACL ресурса.")
+        respond(id, false, "auth_denied")
         return
     end
     -- Standard onPlayerLogin fires for existing systems such as ACL, HUD and apartments.
     setElementData(player, "march:launcherAuth", true, false)
     triggerClientEvent(player, "march_launcher_auth:authenticated", resourceRoot, name)
     respond(id, true, mode == "register"
-        and "Регистрация выполнена. Игровой аккаунт открыт."
-        or "Вход выполнен. Повторный пароль не нужен.")
+        and "registration_success"
+        or "login_success")
     outputServerLog("[MARCH Launcher] Local account auth: " .. name .. " (" .. mode .. ")")
 end
 
