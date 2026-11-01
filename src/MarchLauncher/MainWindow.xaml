@@ -110,7 +110,7 @@
  <StackPanel Margin="9,20,9,0">
  <TextBlock Text="ЛИЧНЫЙ КАБИНЕТ" FontSize="16" FontWeight="Bold" Margin="0,0,0,18"/>
  <TextBlock Text="ЛОГИН" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,6"/>
- <TextBox x:Name="LoginUsernameBox" Height="44" MaxLength="24" Margin="0,0,0,13"/>
+ <TextBox x:Name="LoginUsernameBox" Height="44" MaxLength="20" Margin="0,0,0,13"/>
  <TextBlock Text="ПАРОЛЬ" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,6"/>
  <PasswordBox x:Name="LoginPasswordBox" Height="44" Margin="0,0,0,13"/>
  <CheckBox x:Name="RememberLoginBox" Content="Запомнить логин" Foreground="#8FAABB" Margin="0,0,0,17"/>
