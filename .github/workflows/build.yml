@@ -38,9 +38,3 @@ jobs:
           name: MARCH-ROLE-PLAY-Launcher-win-x64
           path: publish/
           if-no-files-found: error
-      - name: Upload MTA launcher auth integration resource
-        uses: actions/upload-artifact@v4
-        with:
-          name: MARCH-MTA-Launcher-Auth-Bridge
-          path: integration/march_launcher_bridge/
-          if-no-files-found: error
