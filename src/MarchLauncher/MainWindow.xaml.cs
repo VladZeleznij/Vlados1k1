@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows.Threading;
@@ -22,6 +23,8 @@ public partial class MainWindow : Window
         "MARCH ROLE PLAY", "launcher-settings.json");
 
     private readonly DiscordPresence _discordPresence = new();
+    private LauncherAuthHandoff? _authHandoff;
+    private string _authHandoffError = "";
     private readonly DispatcherTimer _monitorTimer = new() { Interval = TimeSpan.FromSeconds(20) };
     private bool _checkingServer;
 
@@ -31,11 +34,23 @@ public partial class MainWindow : Window
         _discordPresence.StatusChanged += message =>
             Dispatcher.BeginInvoke(new Action(() => DiscordPresenceText.Text = message));
         LoadSettings();
+        try
+        {
+            _authHandoff = new LauncherAuthHandoff();
+            _authHandoff.Completed += (ok, code) =>
+                Dispatcher.BeginInvoke(new Action(() => HandleGameAuthResult(ok, code)));
+        }
+        catch (Exception ex)
+        {
+            _authHandoffError = ex.Message;
+            LauncherLoginStatusText.Text = "Мост MTA недоступен: " + ex.Message;
+            LauncherRegisterStatusText.Text = LauncherLoginStatusText.Text;
+        }
         _discordPresence.Configure(DiscordApplicationId);
         _monitorTimer.Tick += async (_, _) => await UpdateServerStatusAsync();
         _monitorTimer.Start();
         Loaded += async (_, _) => await UpdateServerStatusAsync();
-        Closed += (_, _) => { _monitorTimer.Stop(); _discordPresence.Dispose(); };
+        Closed += (_, _) => { _monitorTimer.Stop(); _discordPresence.Dispose(); _authHandoff?.Dispose(); };
     }
 
     private async Task UpdateServerStatusAsync()
@@ -109,6 +124,11 @@ public partial class MainWindow : Window
             MtaPathBox.Text = settings.MtaPath ?? "";
             _telegramUrl = settings.TelegramUrl ?? "";
             _vkUrl = settings.VkUrl ?? "";
+            if (settings.RememberUsername && !string.IsNullOrWhiteSpace(settings.Username))
+            {
+                LoginUsernameBox.Text = settings.Username;
+                RememberLoginBox.IsChecked = true;
+            }
         }
         catch { StatusText.Text = "Не удалось прочитать сохранённые настройки"; }
     }
@@ -117,7 +137,9 @@ public partial class MainWindow : Window
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_settingsFile)!);
         var settings = new LauncherSettings(MtaPathBox.Text.Trim(), "127.0.0.1", 22003,
-            DiscordApplicationId, _telegramUrl, _vkUrl, DiscordInviteUrl);
+            DiscordApplicationId, _telegramUrl, _vkUrl, DiscordInviteUrl,
+            RememberLoginBox.IsChecked == true ? LoginUsernameBox.Text.Trim() : "",
+            RememberLoginBox.IsChecked == true);
         File.WriteAllText(_settingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
     }
 
@@ -156,6 +178,96 @@ public partial class MainWindow : Window
 
     private void DiscordButton_Click(object sender, RoutedEventArgs e) =>
         OpenCommunity("Discord", DiscordInviteUrl, "discord.gg", "discord.com");
+
+    private static string DescribeAuthResult(string code)
+    {
+        return code switch
+        {
+            "login_success" => "Вход выполнен! MTA авторизовал тебя автоматически.",
+            "registration_success" => "Аккаунт создан и вход в MTA выполнен!",
+            "username_exists" => "Этот логин уже занят. Выбери другой.",
+            "invalid_credentials" => "Проверь логин и пароль.",
+            "invalid_credentials_or_external_db" =>
+                "Логин не подтверждён. Возможно, сервер использует отдельную базу march_auth.",
+            "missing_acl" => "Серверу не хватает ACL-права function.addAccount.",
+            "auth_denied" => "Вход отклонён сервером. Проверь права function.logIn.",
+            _ => "Ответ сервера: " + code
+        };
+    }
+
+    private void HandleGameAuthResult(bool ok, string code)
+    {
+        var message = DescribeAuthResult(code);
+        LauncherLoginStatusText.Text = message;
+        LauncherRegisterStatusText.Text = message;
+        StatusText.Text = message;
+        if (ok)
+        {
+            LoginPasswordBox.Clear();
+            RegisterPasswordBox.Clear();
+            RegisterRepeatPasswordBox.Clear();
+        }
+    }
+
+    private static bool ValidateCredentials(string username, string password, out string error)
+    {
+        if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^[A-Za-z0-9_]{3,24}$"))
+        {
+            error = "Логин: 3–24 символа, латинские буквы, цифры или _.";
+            return false;
+        }
+        if (password.Length < 8 || password.Length > 128)
+        {
+            error = "Пароль должен содержать от 8 до 128 символов.";
+            return false;
+        }
+        error = "";
+        return true;
+    }
+
+    private void PrepareLauncherAuth(string mode, string username, string password)
+    {
+        var target = mode == "login" ? LauncherLoginStatusText : LauncherRegisterStatusText;
+        if (_authHandoff == null)
+        {
+            target.Text = "Не удалось включить локальный мост (127.0.0.1:28745): " +
+                _authHandoffError;
+            return;
+        }
+        username = username.Trim();
+        if (!ValidateCredentials(username, password, out var error))
+        {
+            target.Text = error;
+            return;
+        }
+
+        try
+        {
+            _authHandoff.Prepare(mode, username, password);
+            if (mode == "login") SaveSettings();
+            target.Text = "Данные готовы. Нажми «ИГРАТЬ»: сервер проверит их при подключении. " +
+                "Пароль не сохранён на диск.";
+            StatusText.Text = "Вход подготовлен для MTA. Нажми «ИГРАТЬ».";
+        }
+        catch (Exception ex)
+        {
+            target.Text = "Не удалось подготовить авторизацию: " + ex.Message;
+        }
+    }
+
+    private void LoginActionButton_Click(object sender, RoutedEventArgs e) =>
+        PrepareLauncherAuth("login", LoginUsernameBox.Text, LoginPasswordBox.Password);
+
+    private void RegisterActionButton_Click(object sender, RoutedEventArgs e)
+    {
+        var password = RegisterPasswordBox.Password;
+        if (!string.Equals(password, RegisterRepeatPasswordBox.Password, StringComparison.Ordinal))
+        {
+            LauncherRegisterStatusText.Text = "Пароли не совпадают.";
+            return;
+        }
+        PrepareLauncherAuth("register", RegisterUsernameBox.Text, password);
+    }
 
     private void BrowseButton_Click(object sender, RoutedEventArgs e)
     {
@@ -199,7 +311,7 @@ public partial class MainWindow : Window
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
     private void NewsButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Новости проекта отображаются на главной.";
     private void PromoButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Промокоды будут доступны после подключения серверного API.";
-    private void AccountButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 0; StatusText.Text = "Авторизация появится после подключения march_auth."; }
+    private void AccountButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 0; StatusText.Text = "Введи данные для входа и нажми «ИГРАТЬ»."; }
     private void SettingsButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 2; MtaPathBox.Focus(); StatusText.Text = "Настройки сервера находятся справа."; }
 
     private sealed record LauncherSettings(
@@ -207,5 +319,7 @@ public partial class MainWindow : Window
         string? DiscordAppId = null,
         string? TelegramUrl = null,
         string? VkUrl = null,
-        string? DiscordInviteUrl = null);
+        string? DiscordInviteUrl = null,
+        string? Username = null,
+        bool RememberUsername = false);
 }
