@@ -325,33 +325,27 @@ public partial class MainWindow : Window
 
     private void PlayButton_Click(object sender, RoutedEventArgs e)
     {
-        // No separate "ВОЙТИ" click is required: the Play button stages the
-        // credentials directly from the currently selected auth form.
-        if (_authHandoff?.HasPending != true)
+        // Play also stages credentials, so clicking "ВОЙТИ" first is optional.
+        // A remembered username WITHOUT a password must not block manual MTA login.
+        if (RightTabs.SelectedIndex == 1)
         {
-            if (RightTabs.SelectedIndex == 1)
+            var password = RegisterPasswordBox.Password;
+            if (password.Length > 0 || RegisterRepeatPasswordBox.Password.Length > 0)
             {
-                var login = RegisterUsernameBox.Text.Trim();
-                var password = RegisterPasswordBox.Password;
-                if (login.Length > 0 || password.Length > 0)
+                if (password != RegisterRepeatPasswordBox.Password)
                 {
-                    if (password != RegisterRepeatPasswordBox.Password)
-                    {
-                        LauncherRegisterStatusText.Text = "Пароли не совпадают.";
-                        return;
-                    }
-                    if (!PrepareLauncherAuth("register", login, password)) return;
+                    LauncherRegisterStatusText.Text = "Пароли не совпадают.";
+                    return;
                 }
+                if (!PrepareLauncherAuth("register", RegisterUsernameBox.Text, password))
+                    return;
             }
-            else
-            {
-                var login = LoginUsernameBox.Text.Trim();
-                var password = LoginPasswordBox.Password;
-                if (login.Length > 0 || password.Length > 0)
-                {
-                    if (!PrepareLauncherAuth("login", login, password)) return;
-                }
-            }
+        }
+        else if (LoginPasswordBox.Password.Length > 0 &&
+                 !PrepareLauncherAuth("login", LoginUsernameBox.Text,
+                     LoginPasswordBox.Password))
+        {
+            return;
         }
         LaunchMta();
     }
