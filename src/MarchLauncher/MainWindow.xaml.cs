@@ -22,6 +22,8 @@ public partial class MainWindow : Window
     // controls are intentionally removed from launcher settings.
     private string _mtaFolder = "";
     private string _authResourceFolder = "";
+    private string _gameInstallPath = "";
+    private string _gameInstallMode = "full";
     private readonly string _settingsFile = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "MARCH ROLE PLAY", "launcher-settings.json");
@@ -129,6 +131,8 @@ public partial class MainWindow : Window
             if (settings is null) return;
             _mtaFolder = settings.MtaPath ?? "";
             _authResourceFolder = settings.AuthResourcePath ?? "";
+            _gameInstallPath = settings.GameInstallPath ?? "";
+            _gameInstallMode = settings.GameInstallMode == "update" ? "update" : "full";
             _telegramUrl = settings.TelegramUrl ?? "";
             _vkUrl = settings.VkUrl ?? "";
             RememberLoginBox.IsChecked = settings.RememberUsername;
@@ -156,7 +160,8 @@ public partial class MainWindow : Window
             DiscordApplicationId, _telegramUrl, _vkUrl, DiscordInviteUrl,
             RememberLoginBox.IsChecked == true ? LoginUsernameBox.Text.Trim() : "",
             RememberLoginBox.IsChecked == true,
-            _authResourceFolder);
+            _authResourceFolder,
+            _gameInstallPath, _gameInstallMode);
         File.WriteAllText(_settingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
     }
 
@@ -410,7 +415,25 @@ public partial class MainWindow : Window
     private void NewsButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Новости проекта отображаются на главной.";
     private void PromoButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Промокоды будут доступны после подключения серверного API.";
     private void AccountButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 0; StatusText.Text = "Введи данные для входа и нажми «ИГРАТЬ»."; }
-    private void SettingsButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 2; StatusText.Text = "Настройки подключения применяются автоматически."; }
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Settings have their own branded window; login/register tabs remain
+        // untouched, and the existing SSO resource path remains internal.
+        var panel = new SettingsWindow(_gameInstallPath, _gameInstallMode) { Owner = this };
+        if (panel.ShowDialog() != true) return;
+
+        _gameInstallPath = panel.InstallDirectory;
+        _gameInstallMode = panel.InstallMode;
+        try
+        {
+            SaveSettings();
+            StatusText.Text = "Настройки будущей установки сохранены.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Не удалось сохранить настройки: " + ex.Message;
+        }
+    }
 
     private sealed record LauncherSettings(
         string MtaPath, string Host, int Port,
@@ -420,5 +443,7 @@ public partial class MainWindow : Window
         string? DiscordInviteUrl = null,
         string? Username = null,
         bool RememberUsername = false,
-        string? AuthResourcePath = null);
+        string? AuthResourcePath = null,
+        string? GameInstallPath = null,
+        string? GameInstallMode = null);
 }
