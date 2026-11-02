@@ -115,20 +115,20 @@
  <PasswordBox x:Name="LoginPasswordBox" Height="44" Margin="0,0,0,13"/>
  <CheckBox x:Name="RememberLoginBox" Content="Запомнить логин" Foreground="#8FAABB" Margin="0,0,0,17"/>
  <Button x:Name="LoginActionButton" Content="ВОЙТИ" Height="46" Background="#00B8B5" Foreground="#061822" FontSize="16" FontWeight="Bold" Click="LoginActionButton_Click"/>
- <TextBlock x:Name="LauncherLoginStatusText" Text="Для входа введи данные, затем нажми «Играть». Повторно вводить пароль в MTA не потребуется при работающем локальном мосте."
+ <TextBlock x:Name="LauncherLoginStatusText" Text="Введи логин и пароль и нажми «ВОЙТИ» — лаунчер запустит игру с автоматической проверкой аккаунта."
  Foreground="#92B4C1" TextWrapping="Wrap" FontSize="12" Margin="0,15,0,0"/>
  </StackPanel></TabItem>
  <TabItem Header="Регистрация">
  <StackPanel Margin="9,20,9,0">
  <TextBlock Text="СОЗДАТЬ АККАУНТ" FontSize="16" FontWeight="Bold" Margin="0,0,0,16"/>
  <TextBlock Text="НОВЫЙ ЛОГИН" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,5"/>
- <TextBox x:Name="RegisterUsernameBox" Height="42" MaxLength="24" Margin="0,0,0,11"/>
+ <TextBox x:Name="RegisterUsernameBox" Height="42" MaxLength="20" Margin="0,0,0,11"/>
  <TextBlock Text="ПАРОЛЬ (ОТ 8 СИМВОЛОВ)" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,5"/>
  <PasswordBox x:Name="RegisterPasswordBox" Height="42" Margin="0,0,0,11"/>
  <TextBlock Text="ПОВТОРИ ПАРОЛЬ" Foreground="#8FAABB" FontSize="11" Margin="0,0,0,5"/>
  <PasswordBox x:Name="RegisterRepeatPasswordBox" Height="42" Margin="0,0,0,15"/>
  <Button x:Name="RegisterActionButton" Content="ЗАРЕГИСТРИРОВАТЬСЯ" Height="45" Background="#00B8B5" Foreground="#061822" FontWeight="Bold" Click="RegisterActionButton_Click"/>
- <TextBlock x:Name="LauncherRegisterStatusText" Text="Аккаунт будет создан на MTA-сервере при подключении, а не в отдельной базе лаунчера."
+ <TextBlock x:Name="LauncherRegisterStatusText" Text="Регистрация выполняется в базе march_auth при запуске игры. Не нужно повторно вводить данные в MTA."
  Foreground="#92B4C1" TextWrapping="Wrap" FontSize="12" Margin="0,16,0,0"/>
  </StackPanel></TabItem>
  <TabItem Header="Настройки"><ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
@@ -138,7 +138,11 @@
  <TextBlock Text="Адрес закреплён и не редактируется." Foreground="#91AEBE" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,15"/>
  <TextBlock Text="Папка MTA (необязательно)" Foreground="#9EBCCA" FontSize="11"/>
  <TextBox x:Name="MtaPathBox" Padding="9,6" FontSize="12" Margin="0,5,0,10"/>
- <Button Content="ВЫБРАТЬ ПАПКУ MTA" Height="38" Click="BrowseButton_Click"/>
+ <Button Content="ВЫБРАТЬ ПАПКУ MTA" Height="38" Click="BrowseButton_Click" Margin="0,0,0,15"/>
+ <TextBlock Text="ПАПКА СЕРВЕРНОГО РЕСУРСА march_auth" Foreground="{StaticResource Aqua}" FontWeight="Bold" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,7"/>
+ <TextBox x:Name="AuthResourcePathBox" IsReadOnly="True" Height="38" Padding="9,6" FontSize="12" Margin="0,0,0,9" ToolTip="Папка march_auth на компьютере с MTA-сервером"/>
+ <Button Content="ВЫБРАТЬ ПАПКУ march_auth" Height="38" Click="BrowseAuthResource_Click"/>
+ <TextBlock Text="Сначала лаунчер автоматически ищет работающий MTA-сервер. Эта настройка нужна, только если автопоиск не нашёл папку." Foreground="#91AEBE" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0"/>
  </StackPanel></ScrollViewer></TabItem>
  </TabControl>
  </Border>
