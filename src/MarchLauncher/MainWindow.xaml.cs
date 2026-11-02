@@ -161,43 +161,52 @@ public partial class MainWindow : Window
 
     private void LoadSettings()
     {
+        // Account recovery is independent of launcher-settings.json so a broken
+        // settings file cannot make Windows forget a previously saved password.
         try
         {
-            LauncherSettings? settings = null;
             if (File.Exists(_settingsFile))
-                settings = JsonSerializer.Deserialize<LauncherSettings>(
+            {
+                var settings = JsonSerializer.Deserialize<LauncherSettings>(
                     File.ReadAllText(_settingsFile));
-            if (settings != null)
-            {
-                _mtaFolder = settings.MtaPath ?? "";
-                _authResourceFolder = settings.AuthResourcePath ?? "";
-                _gameInstallPath = settings.GameInstallPath ?? "";
-                _gameInstallMode = settings.GameInstallMode == "update"
-                    ? "update" : "full";
-                _telegramUrl = settings.TelegramUrl ?? "";
-                _vkUrl = settings.VkUrl ?? "";
-                RememberLoginBox.IsChecked = settings.RememberUsername;
-                if (settings.RememberUsername &&
-                    !string.IsNullOrWhiteSpace(settings.Username))
-                    LoginUsernameBox.Text = settings.Username;
-            }
-
-            // Restore the Windows vault credential independently of old JSON
-            // checkbox values, which sometimes changed during launcher updates.
-            var savedAccount = WindowsCredentialStore.ReadSaved();
-            if (savedAccount.HasValue)
-            {
-                LoginUsernameBox.Text = savedAccount.Value.Username;
-                LoginPasswordBox.Password = savedAccount.Value.Password;
-                RememberLoginBox.IsChecked = true;
-                LauncherLoginStatusText.Text =
-                    "Данные аккаунта восстановлены. Нажми «ИГРАТЬ» для автовхода.";
+                if (settings != null)
+                {
+                    _mtaFolder = settings.MtaPath ?? "";
+                    _authResourceFolder = settings.AuthResourcePath ?? "";
+                    _gameInstallPath = settings.GameInstallPath ?? "";
+                    _gameInstallMode = settings.GameInstallMode == "update"
+                        ? "update" : "full";
+                    _telegramUrl = settings.TelegramUrl ?? "";
+                    _vkUrl = settings.VkUrl ?? "";
+                    RememberLoginBox.IsChecked = settings.RememberUsername;
+                    if (settings.RememberUsername &&
+                        !string.IsNullOrWhiteSpace(settings.Username))
+                        LoginUsernameBox.Text = settings.Username;
+                }
             }
         }
         catch (Exception ex)
         {
-            StatusText.Text = "Не удалось восстановить настройки аккаунта: " +
+            StatusText.Text = "Ошибка настроек. Данные Windows проверяются отдельно: " +
                 ex.Message;
+        }
+
+        try
+        {
+            var stored = WindowsCredentialStore.ReadSaved();
+            if (stored.HasValue)
+            {
+                LoginUsernameBox.Text = stored.Value.Username;
+                LoginPasswordBox.Password = stored.Value.Password;
+                RememberLoginBox.IsChecked = true;
+                LauncherLoginStatusText.Text =
+                    "Логин и пароль восстановлены. Нажми «ИГРАТЬ» для автовхода.";
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLoginStatusText.Text =
+                "Пароль не удалось восстановить из Windows: " + ex.Message;
         }
     }
 
