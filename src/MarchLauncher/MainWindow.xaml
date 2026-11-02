@@ -131,19 +131,6 @@
  <TextBlock x:Name="LauncherRegisterStatusText" Text="Регистрация выполняется в базе march_auth при запуске игры. Не нужно повторно вводить данные в MTA."
  Foreground="#92B4C1" TextWrapping="Wrap" FontSize="12" Margin="0,16,0,0"/>
  </StackPanel></TabItem>
- <TabItem Header="Настройки">
- <StackPanel Margin="9,20,16,0">
- <TextBlock Text="ПОДКЛЮЧЕНИЕ К MTA" FontWeight="Bold" Foreground="{StaticResource Aqua}" FontSize="15" Margin="0,0,0,15"/>
- <TextBlock Text="СЕРВЕР MARCH ROLE PLAY" Foreground="#9EBCCA" FontSize="11"/>
- <TextBlock Text="127.0.0.1:22003" Foreground="#DDF8F8" FontSize="20" FontWeight="Bold" Margin="0,6,0,15"/>
- <TextBlock Text="Адрес сервера закреплён и не редактируется." Foreground="#91AEBE" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,16"/>
- <Border Background="#102D37" BorderBrush="#24515D" BorderThickness="1" CornerRadius="8" Padding="13">
- <StackPanel>
- <TextBlock Text="АВТОМАТИЧЕСКОЕ ПОДКЛЮЧЕНИЕ" Foreground="#0CF1ED" FontWeight="SemiBold" FontSize="12"/>
- <TextBlock Text="Папка march_auth определяется автоматически. Ранее сохранённый путь продолжит использоваться." Foreground="#A5C3CF" TextWrapping="Wrap" FontSize="11" Margin="0,8,0,0"/>
- </StackPanel></Border>
- <TextBlock Text="Пароль сохраняется в Диспетчере учётных данных Windows, только после успешного входа и при включённом «Запомнить логин и пароль»." Foreground="#819EAC" FontSize="11" TextWrapping="Wrap" Margin="0,18,0,0"/>
- </StackPanel></TabItem>
  </TabControl>
  </Border>
  <Border Grid.Row="2" Grid.Column="0" Margin="0,12,0,0" CornerRadius="15" Background="#E3081B25" BorderBrush="#24515D" BorderThickness="1" Padding="15">
