@@ -13,7 +13,7 @@ Download the successful build artifact **MARCH-ROLE-PLAY-Launcher-win-x64**. Ext
 2. In the MTA server console run `stop march_auth`, `refresh`, `start march_auth` around installation.
 3. Download the latest successful Windows launcher build via [GitHub Actions](https://github.com/VladZeleznij/Vlados1k1/actions).
 4. Start the local MTA server on the same PC as the launcher. Enter login and password, click **ВОЙТИ**; the launcher launches MTA and the server validates credentials against the **existing** bcrypt/SQLite accounts (and native MTA accounts for ACL admins). The **ИГРАТЬ** button also prepares filled credentials automatically.
-5. The launcher tries to find the local server's running process and `march_auth` resource directory automatically. If it cannot, in the launcher **Настройки → ВЫБРАТЬ ПАПКУ march_auth**, select the existing folder containing `meta.xml`, and retry.
+5. The launcher detects the local server's march_auth directory automatically. Previous saved paths are preserved internally; all folder selection controls have been removed.
 
 ### Debugging SSO
 
@@ -30,3 +30,7 @@ The launcher is hardcoded to use the project Discord Application ID `13015650591
 ## Community buttons
 
 The sidebar includes Telegram, VK and Discord vector icons. Discord uses the project invite. Previously saved VK/Telegram URLs may still be read from older local settings, but there is no editable social-link configuration at present.
+
+## Remembering account credentials
+
+On successful game login or registration, checking **Запомнить логин и пароль** saves the password as a generic credential in the current Windows user's Credential Manager. The app settings JSON only stores the optional username, not the password. Next launch fills both fields automatically. Unchecking the option deletes the stored Windows credential. Older builds did not save passwords: log in once using the new build to activate this feature. The short-lived SSO ticket inside the local MTA server resource is a separate temporary transport and should not be shared publicly.
