@@ -21,11 +21,11 @@
  <Grid Margin="17,22"><Grid.Background><SolidColorBrush Color="#C8031018"/></Grid.Background><Grid.RowDefinitions><RowDefinition Height="130"/><RowDefinition Height="*"/><RowDefinition Height="180"/></Grid.RowDefinitions>
  <StackPanel VerticalAlignment="Top"><TextBlock Text="MARCH" FontSize="48" FontWeight="Black" FontStyle="Italic" Foreground="{StaticResource Aqua}" Effect="{StaticResource NeonGlow}"/><TextBlock Text="R O L E  P L A Y" Margin="5,-5,0,0" FontSize="12" Foreground="White"/></StackPanel>
  <StackPanel Grid.Row="1" VerticalAlignment="Top">
- <Button Content="⌂   Главная" Background="#007D89" Effect="{StaticResource NeonGlow}" Foreground="White" FontSize="16" HorizontalContentAlignment="Left" Height="49"/>
+ <Button x:Name="HomeNavButton" Content="⌂   Главная" Click="HomeButton_Click" Background="#007D89" Effect="{StaticResource NeonGlow}" Foreground="White" FontSize="16" HorizontalContentAlignment="Left" Height="49"/>
  <Button Content="▤   Новости" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="NewsButton_Click"/>
  <Button Content="✦   Промокоды" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="PromoButton_Click"/>
  <Button Content="♙   Личный кабинет" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="AccountButton_Click"/>
- <Button Content="⚙   Настройки" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="SettingsButton_Click"/>
+ <Button x:Name="SettingsNavButton" Content="⚙   Настройки" HorizontalContentAlignment="Left" FontSize="16" Margin="0,9,0,0" Click="SettingsButton_Click"/>
  </StackPanel>
  <StackPanel Grid.Row="2" VerticalAlignment="Bottom"><StackPanel Orientation="Horizontal" Margin="0,0,0,19"><Button Width="48" Height="43" Margin="0,0,9,0" Padding="10" Background="#142C3B" BorderBrush="#2E6571" BorderThickness="1" ToolTip="Telegram — сообщество MARCH ROLE PLAY" Click="TelegramButton_Click" Cursor="Hand"><Viewbox Width="24" Height="24" Stretch="Uniform"><Path Fill="#30AEE7" Stretch="Uniform" Data="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></Viewbox></Button><Button Width="48" Height="43" Margin="0,0,9,0" Padding="10" Background="#142C3B" BorderBrush="#2E6571" BorderThickness="1" ToolTip="ВКонтакте — сообщество MARCH ROLE PLAY" Click="VkButton_Click" Cursor="Hand"><Viewbox Width="24" Height="24" Stretch="Uniform"><Path Fill="#4A96F2" Stretch="Uniform" Data="m9.489.004.729-.003h3.564l.73.003.914.01.433.007.418.011.403.014.388.016.374.021.36.025.345.03.333.033c1.74.196 2.933.616 3.833 1.516.9.9 1.32 2.092 1.516 3.833l.034.333.029.346.025.36.02.373.025.588.012.41.013.644.009.915.004.98-.001 3.313-.003.73-.01.914-.007.433-.011.418-.014.403-.016.388-.021.374-.025.36-.03.345-.033.333c-.196 1.74-.616 2.933-1.516 3.833-.9.9-2.092 1.32-3.833 1.516l-.333.034-.346.029-.36.025-.373.02-.588.025-.41.012-.644.013-.915.009-.98.004-3.313-.001-.73-.003-.914-.01-.433-.007-.418-.011-.403-.014-.388-.016-.374-.021-.36-.025-.345-.03-.333-.033c-1.74-.196-2.933-.616-3.833-1.516-.9-.9-1.32-2.092-1.516-3.833l-.034-.333-.029-.346-.025-.36-.02-.373-.025-.588-.012-.41-.013-.644-.009-.915-.004-.98.001-3.313.003-.73.01-.914.007-.433.011-.418.014-.403.016-.388.021-.374.025-.36.03-.345.033-.333c.196-1.74.616-2.933 1.516-3.833.9-.9 2.092-1.32 3.833-1.516l.333-.034.346-.029.36-.025.373-.02.588-.025.41-.012.644-.013.915-.009ZM6.79 7.3H4.05c.13 6.24 3.25 9.99 8.72 9.99h.31v-3.57c2.01.2 3.53 1.67 4.14 3.57h2.84c-.78-2.84-2.83-4.41-4.11-5.01 1.28-.74 3.08-2.54 3.51-4.98h-2.58c-.56 1.98-2.22 3.78-3.8 3.95V7.3H10.5v6.92c-1.6-.4-3.62-2.34-3.71-6.92Z"/></Viewbox></Button><Button Width="48" Height="43" Margin="0,0,9,0" Padding="10" Background="#142C3B" BorderBrush="#2E6571" BorderThickness="1" ToolTip="Discord — сообщество MARCH ROLE PLAY" Click="DiscordButton_Click" Cursor="Hand"><Viewbox Width="24" Height="24" Stretch="Uniform"><Path Fill="#8395F9" Stretch="Uniform" Data="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></Viewbox></Button></StackPanel>
  <TextBlock x:Name="DiscordPresenceText" Text="Discord: подключение к активности…" Foreground="#7FAAB8" FontSize="11" Margin="0,0,0,14" TextWrapping="Wrap"/>
@@ -41,7 +41,7 @@
  <Button Grid.Column="1" Content="—" FontSize="19" Background="Transparent" Click="MinimizeButton_Click"/>
  <Button Grid.Column="2" Content="✕" FontSize="18" Background="Transparent" Click="CloseButton_Click"/>
  </Grid>
- <Grid Grid.Row="1" Margin="16,12,16,16">
+ <Grid x:Name="DashboardView" Grid.Row="1" Margin="16,12,16,16">
  <Grid.ColumnDefinitions><ColumnDefinition Width="1.85*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
  <Grid.RowDefinitions><RowDefinition Height="1.05*"/><RowDefinition Height="1.55*"/><RowDefinition Height="86"/></Grid.RowDefinitions>
  <Border Grid.Row="0" Grid.Column="0" CornerRadius="12" BorderBrush="#315260" BorderThickness="1" ClipToBounds="True">
@@ -136,5 +136,95 @@
  <Border Grid.Row="2" Grid.Column="0" Margin="0,12,0,0" CornerRadius="15" Background="#E3081B25" BorderBrush="#24515D" BorderThickness="1" Padding="15">
  <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="55"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⇩" FontSize="31" Foreground="{StaticResource Aqua}" VerticalAlignment="Center" HorizontalAlignment="Center"/><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="Проверка обновлений пока недоступна" FontWeight="SemiBold" Foreground="#D6F0F4"/><TextBlock x:Name="StatusText" Text="Для запуска нажми «ИГРАТЬ»" Foreground="#9BB6C4" Margin="0,6,0,0" TextWrapping="Wrap"/></StackPanel></Grid></Border>
  <Button Grid.Row="2" Grid.Column="2" x:Name="PlayButton" Content="▶   ИГРАТЬ" Effect="{StaticResource NeonGlow}" Background="#00E5DF" Foreground="#031923" FontSize="23" FontWeight="Bold" Margin="0,12,0,0" Click="PlayButton_Click"/>
- </Grid></Grid></Grid></Border>
+ </Grid>
+ <!-- Full-size SETTINGS TAB inside the existing launcher, not a second Window. -->
+ <Grid x:Name="SettingsView" Grid.Row="1" Margin="16,12,16,16" Visibility="Collapsed">
+  <Grid.RowDefinitions>
+   <RowDefinition Height="92"/>
+   <RowDefinition Height="*"/>
+   <RowDefinition Height="73"/>
+  </Grid.RowDefinitions>
+  <StackPanel Grid.Row="0" Margin="12,1,0,10">
+   <TextBlock Text="MARCH ROLE PLAY  /  НАСТРОЙКИ" Foreground="#66CFCF" FontWeight="Bold" FontSize="11"/>
+   <TextBlock Text="Установка игры" Foreground="#F0FEFF" FontSize="32" FontWeight="Black" Margin="0,8,0,0"/>
+   <TextBlock Text="Подготовка к установке файлов игрового клиента" Foreground="#95B4C1" FontSize="12" Margin="0,3,0,0"/>
+  </StackPanel>
+  <Border Grid.Row="1" Background="#D8081B25" BorderBrush="#24515D" BorderThickness="1" CornerRadius="14">
+   <Grid Margin="20,20,20,20">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="1.7*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="0.93*"/></Grid.ColumnDefinitions>
+    <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+     <StackPanel Margin="0,0,6,6">
+      <Border CornerRadius="11" Background="#102C39" BorderBrush="#2B5965" BorderThickness="1" Padding="20">
+       <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+         <Border Width="36" Height="36" CornerRadius="8" Background="#11545A" Padding="8">
+          <Viewbox Stretch="Uniform"><Path Fill="#07DAD3" Data="M10,4H2C0.9,4 0,4.9 0,6V18C0,19.1 0.9,20 2,20H22C23.1,20 24,19.1 24,18V8C24,6.9 23.1,6 22,6H12L10,4ZM2,8H22V18H2V8Z"/></Viewbox>
+         </Border>
+         <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+          <TextBlock Text="ПАПКА УСТАНОВКИ" FontSize="15" FontWeight="Bold" Foreground="#E9FFFF"/>
+          <TextBlock Text="Где будут находиться игровые файлы" Margin="0,5,0,0" Foreground="#9BBCC7" FontSize="11"/>
+         </StackPanel>
+        </StackPanel>
+        <TextBlock Text="ПУТЬ К ПАПКЕ" Foreground="#86ABB9" FontSize="11" Margin="0,0,0,8"/>
+        <Grid>
+         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="112"/></Grid.ColumnDefinitions>
+         <TextBox x:Name="InstallPathBox" IsReadOnly="True" Height="45" Padding="12,10" FontSize="12" Text="Папка пока не выбрана" ToolTip="Путь для будущей установки игровых файлов"/>
+         <Button Grid.Column="2" Content="ОБЗОР" Background="#174755" BorderBrush="#39808B" BorderThickness="1" Foreground="#CFFBFA" FontWeight="Bold" FontSize="12" Click="BrowseInstallFolder_Click"/>
+        </Grid>
+        <TextBlock Text="Выбранная папка сохранится в настройках. Скачивание пока недоступно."
+                   Margin="0,11,0,0" Foreground="#89AAB6" FontSize="11" TextWrapping="Wrap"/>
+       </StackPanel>
+      </Border>
+      <TextBlock Text="ВАРИАНТ УСТАНОВКИ" Foreground="#B5D9E0" FontWeight="Bold" FontSize="12" Margin="3,23,0,11"/>
+      <Border Background="#102B36" BorderBrush="#265361" BorderThickness="1" CornerRadius="10" Padding="16,15">
+       <StackPanel>
+        <RadioButton x:Name="FullInstallOption" GroupName="GameInstallMode" Content="Полная установка" Foreground="#F0FFFF" FontSize="14" FontWeight="SemiBold" IsChecked="True"/>
+        <TextBlock Text="Все необходимые файлы игрового клиента" Foreground="#8DAEBB" FontSize="11" Margin="23,7,0,0"/>
+       </StackPanel>
+      </Border>
+      <Border Background="#102B36" BorderBrush="#265361" BorderThickness="1" CornerRadius="10" Padding="16,15" Margin="0,10,0,0">
+       <StackPanel>
+        <RadioButton x:Name="UpdateInstallOption" GroupName="GameInstallMode" Content="Обновить файлы" Foreground="#F0FFFF" FontSize="14" FontWeight="SemiBold"/>
+        <TextBlock Text="Поиск и загрузка изменённых файлов — позже" Foreground="#8DAEBB" FontSize="11" Margin="23,7,0,0"/>
+       </StackPanel>
+      </Border>
+     </StackPanel>
+    </ScrollViewer>
+    <Border Grid.Column="2" BorderBrush="#285564" BorderThickness="1" CornerRadius="12" ClipToBounds="True">
+     <Grid>
+      <Grid.Background><ImageBrush ImageSource="/news3.jpg" Stretch="UniformToFill" Opacity=".25"/></Grid.Background>
+      <Rectangle>
+       <Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#D5092632" Offset="0"/><GradientStop Color="#FC06141E" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
+      </Rectangle>
+      <StackPanel Margin="18,23,18,0" VerticalAlignment="Top">
+       <Border CornerRadius="6" Background="#104953" Padding="9,6" HorizontalAlignment="Left">
+        <TextBlock Text="СКОРО" Foreground="#08E6DE" FontWeight="Bold" FontSize="11"/>
+       </Border>
+       <TextBlock Text="MARCH" FontSize="47" FontWeight="Black" FontStyle="Italic" Foreground="{StaticResource Aqua}" Effect="{StaticResource NeonGlow}" Margin="0,23,0,0"/>
+       <TextBlock Text="R O L E  P L A Y" FontSize="13" FontWeight="Bold" Margin="3,-4,0,0"/>
+       <Rectangle Height="1" Fill="#3E6F7B" Margin="0,25,0,18"/>
+       <TextBlock Text="ИГРОВОЙ КЛИЕНТ" Foreground="#F2FEFF" FontWeight="Bold" FontSize="14"/>
+       <TextBlock Text="Здесь появятся проверка файлов, скачивание и ход установки." Foreground="#9DBDCA" FontSize="12" TextWrapping="Wrap" Margin="0,9,0,0"/>
+      </StackPanel>
+      <StackPanel Margin="18,0,18,22" VerticalAlignment="Bottom">
+       <TextBlock Text="УСТАНОВКА ПОКА НЕДОСТУПНА" Foreground="#9CB9C5" FontWeight="Bold" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,11"/>
+       <Button Content="УСТАНОВИТЬ ИГРУ" IsEnabled="False" Background="#28424D" Foreground="#83A9B5" Height="45" FontWeight="Bold"/>
+      </StackPanel>
+     </Grid>
+    </Border>
+   </Grid>
+  </Border>
+  <Border Grid.Row="2" Margin="0,12,0,0" CornerRadius="11" BorderBrush="#285260" BorderThickness="1" Background="#0A222D">
+   <Grid Margin="18,0">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="122"/><ColumnDefinition Width="12"/><ColumnDefinition Width="158"/></Grid.ColumnDefinitions>
+    <StackPanel VerticalAlignment="Center">
+     <TextBlock Text="НАСТРОЙКИ УСТАНОВКИ" Foreground="#C7E5EC" FontWeight="Bold" FontSize="11"/>
+     <TextBlock Text="Сохраняется только папка и выбранный вариант" Foreground="#829EAF" FontSize="11" Margin="0,5,0,0"/>
+    </StackPanel>
+    <Button Grid.Column="1" Content="НАЗАД" Background="#183744" Foreground="#D5F4FA" Click="SettingsBack_Click" Height="40"/>
+    <Button Grid.Column="3" Content="СОХРАНИТЬ" Background="#0BE1DA" Foreground="#041E25" FontWeight="Bold" Click="SettingsSave_Click" Height="40"/>
+   </Grid>
+  </Border>
+ </Grid>
+ </Grid></Grid></Border>
 </Window>
