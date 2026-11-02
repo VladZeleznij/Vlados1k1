@@ -32,7 +32,7 @@ internal sealed class LauncherAuthHandoff : IDisposable
         var folder = FindResourceFolder(selectedResourceFolder, mtaFolder);
         if (folder is null)
             throw new DirectoryNotFoundException(
-                "Не найдена папка серверного ресурса march_auth. Запусти MTA-сервер или выбери эту папку в настройках лаунчера.");
+                "Не найдена папка серверного ресурса march_auth. Убедись, что MTA-сервер запущен на этом компьютере и ресурс установлен.");
 
         var item = new Pending(Guid.NewGuid().ToString("N"), folder, DateTimeOffset.UtcNow.Add(Lifetime));
         var path = Path.Combine(folder, TicketName);
