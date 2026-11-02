@@ -109,7 +109,7 @@ internal sealed class DiscordPresence : IDisposable
                                             : "На сервере MARCH ROLE PLAY",
                                         state = string.IsNullOrEmpty(Volatile.Read(ref _gameNickname))
                                             ? Volatile.Read(ref _serverOnline)
-                                            : "Ник: " + Volatile.Read(ref _gameNickname),
+                                            : "Ник: " + Volatile.Read(ref _gameNickname) + " | " + Volatile.Read(ref _serverOnline),
                                         timestamps = new { start = _startedAt }
                                     }
                                 },
