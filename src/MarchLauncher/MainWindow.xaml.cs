@@ -23,6 +23,8 @@ public partial class MainWindow : Window
     private string _mtaFolder = "";
     private string _authResourceFolder = "";
     private string _gameInstallPath = "";
+    private string _gameSourcePath = "";
+    private CancellationTokenSource? _installerCancellation;
     private string _gameInstallMode = "full";
     private readonly MtaGamePresenceMonitor _gamePresenceMonitor = new();
     private readonly DispatcherTimer _gamePresenceTimer =
@@ -174,6 +176,7 @@ public partial class MainWindow : Window
                     _mtaFolder = settings.MtaPath ?? "";
                     _authResourceFolder = settings.AuthResourcePath ?? "";
                     _gameInstallPath = settings.GameInstallPath ?? "";
+                    _gameSourcePath = settings.GameSourcePath ?? "";
                     _gameInstallMode = settings.GameInstallMode == "update"
                         ? "update" : "full";
                     _telegramUrl = settings.TelegramUrl ?? "";
@@ -218,7 +221,7 @@ public partial class MainWindow : Window
             RememberLoginBox.IsChecked == true ? LoginUsernameBox.Text.Trim() : "",
             RememberLoginBox.IsChecked == true,
             _authResourceFolder,
-            _gameInstallPath, _gameInstallMode);
+            _gameInstallPath, _gameInstallMode, _gameSourcePath);
         File.WriteAllText(_settingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
     }
 
@@ -513,6 +516,8 @@ public partial class MainWindow : Window
         // Discard any unsaved UI edits when returning to the settings tab.
         InstallPathBox.Text = string.IsNullOrWhiteSpace(_gameInstallPath)
             ? "Папка пока не выбрана" : _gameInstallPath;
+        SourceGtaBox.Text = string.IsNullOrWhiteSpace(_gameSourcePath)
+            ? "Исходная GTA SA не выбрана" : _gameSourcePath;
         UpdateInstallOption.IsChecked = _gameInstallMode == "update";
         FullInstallOption.IsChecked = _gameInstallMode != "update";
     }
@@ -530,26 +535,114 @@ public partial class MainWindow : Window
             InstallPathBox.Text = dialog.SelectedPath;
     }
 
+    private void BrowseGtaSource_Click(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Выбери свою установленную GTA San Andreas",
+            UseDescriptionForTitle = true,
+            SelectedPath = Directory.Exists(SourceGtaBox.Text)
+                ? SourceGtaBox.Text : ""
+        };
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            SourceGtaBox.Text = dialog.SelectedPath;
+    }
+
+    private async void InstallGameButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_installerCancellation != null)
+        {
+            _installerCancellation.Cancel();
+            return;
+        }
+
+        var target = InstallPathBox.Text;
+        var source = SourceGtaBox.Text;
+        var update = UpdateInstallOption.IsChecked == true;
+        if (string.IsNullOrWhiteSpace(target) || target == "Папка пока не выбрана")
+        {
+            InstallStatusText.Text = "Сначала выбери папку для нового игрового клиента.";
+            return;
+        }
+        if (!update && (string.IsNullOrWhiteSpace(source) ||
+                        source == "Исходная GTA SA не выбрана"))
+        {
+            InstallStatusText.Text = "Для полной установки выбери свою GTA San Andreas.";
+            return;
+        }
+
+        _gameInstallPath = target;
+        _gameSourcePath = source == "Исходная GTA SA не выбрана" ? "" : source;
+        _gameInstallMode = update ? "update" : "full";
+
+        try { SaveSettings(); }
+        catch (Exception ex)
+        {
+            InstallStatusText.Text = "Ошибка сохранения настроек: " + ex.Message;
+            return;
+        }
+
+        using var cancellation = new CancellationTokenSource();
+        _installerCancellation = cancellation;
+        InstallGameButton.Content = "ОТМЕНА";
+        InstallProgressBar.Value = 0;
+        InstallStatusText.Text = "Подготовка...";
+        var progress = new Progress<GameClientInstaller.InstallProgress>(p =>
+        {
+            InstallProgressBar.Value = p.Percent;
+            InstallStatusText.Text = p.Message;
+        });
+
+        try
+        {
+            if (update)
+                await GameClientInstaller.UpdateProjectFilesAsync(target, progress,
+                    cancellation.Token);
+            else
+                await GameClientInstaller.CopyOwnedGameAsync(source, target, progress,
+                    cancellation.Token);
+
+            InstallStatusText.Text = update
+                ? "Обновления проверены. Игровые файлы актуальны."
+                : "Копия GTA SA установлена. Теперь выбери «Обновить файлы».";
+        }
+        catch (OperationCanceledException)
+        {
+            InstallStatusText.Text = "Операция отменена. Существующие файлы сохранены.";
+        }
+        catch (Exception ex)
+        {
+            InstallStatusText.Text = "Ошибка установки: " + ex.Message;
+        }
+        finally
+        {
+            _installerCancellation = null;
+            InstallGameButton.Content = "НАЧАТЬ";
+        }
+    }
+
     private void SettingsSave_Click(object sender, RoutedEventArgs e)
     {
-        // This only saves future installer preferences.
-        // No game file download or modification occurs here.
         var oldPath = _gameInstallPath;
         var oldMode = _gameInstallMode;
+        var oldSource = _gameSourcePath;
         _gameInstallPath = InstallPathBox.Text == "Папка пока не выбрана"
             ? "" : InstallPathBox.Text;
         _gameInstallMode = UpdateInstallOption.IsChecked == true
             ? "update" : "full";
+        _gameSourcePath = SourceGtaBox.Text == "Исходная GTA SA не выбрана"
+            ? "" : SourceGtaBox.Text;
         try
         {
             SaveSettings();
-            StatusText.Text = "Папка и вариант будущей установки сохранены.";
+            StatusText.Text = "Настройки игрового клиента сохранены.";
             ShowDashboard();
         }
         catch (Exception ex)
         {
             _gameInstallPath = oldPath;
             _gameInstallMode = oldMode;
+            _gameSourcePath = oldSource;
             StatusText.Text = "Не удалось сохранить настройки установки: " + ex.Message;
         }
     }
@@ -567,5 +660,6 @@ public partial class MainWindow : Window
         bool RememberUsername = false,
         string? AuthResourcePath = null,
         string? GameInstallPath = null,
-        string? GameInstallMode = null);
+        string? GameInstallMode = null,
+        string? GameSourcePath = null);
 }
