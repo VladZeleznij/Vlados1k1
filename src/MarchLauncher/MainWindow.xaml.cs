@@ -450,11 +450,61 @@ public partial class MainWindow : Window
         try
         {
             SaveSettings();
-            Process.Start(new ProcessStartInfo($"mtasa://{host}:{port}")
-                { UseShellExecute = true });
-            StatusText.Text = _authHandoff?.HasPending == true
-                ? "MTA запускается. Данные переданы локальному серверу, ждём подтверждение входа."
-                : "MTA запускается. Ввод пароля в игре доступен как обычно.";
+            var projectGtaExists = !string.IsNullOrWhiteSpace(_gameInstallPath) &&
+                File.Exists(Path.Combine(
+                    GameClientInstaller.GtaDirectory(_gameInstallPath), "gta_sa.exe"));
+
+            if (projectGtaExists)
+            {
+                if (!GameClientInstaller.HasLocalMta(_gameInstallPath))
+                {
+                    StatusText.Text =
+                        "В сборке нет MTA. Открой Настройки → Установка игры и установи MTA рядом с GTA.";
+                    return;
+                }
+
+                // The official MTA installer stores GTA location in the registry.
+                // A copied GTA directory alone does not switch this location.
+                try
+                {
+                    using var baseKey = Microsoft.Win32.RegistryKey.OpenBaseKey(
+                        Microsoft.Win32.RegistryHive.LocalMachine,
+                        Microsoft.Win32.RegistryView.Registry32);
+                    using var key = baseKey.OpenSubKey(
+                        @"SOFTWARE\Multi Theft Auto: San Andreas All\Common");
+                    var configured = key?.GetValue("GTA:SA Path") as string;
+                    if (!string.IsNullOrWhiteSpace(configured) &&
+                        !string.Equals(
+                            Path.GetFullPath(configured.Trim().Trim('"')).TrimEnd('\\'),
+                            Path.GetFullPath(
+                                GameClientInstaller.GtaDirectory(_gameInstallPath)).TrimEnd('\\'),
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        StatusText.Text =
+                            "MTA настроен на другую GTA. Переустанови MTA и выбери GTA из папки MARCH ROLE PLAY.";
+                        return;
+                    }
+                }
+                catch (System.Security.SecurityException) { /* MTA itself will verify path */ }
+                catch (UnauthorizedAccessException) { /* No registry access */ }
+
+                var exe = GameClientInstaller.LocalMtaExecutable(_gameInstallPath);
+                Process.Start(new ProcessStartInfo(exe, $"mtasa://{host}:{port}")
+                {
+                    WorkingDirectory = GameClientInstaller.MtaDirectory(_gameInstallPath),
+                    UseShellExecute = true
+                });
+                StatusText.Text =
+                    "Запускается MTA из папки проекта MARCH ROLE PLAY.";
+            }
+            else
+            {
+                // Preserve the original launcher behavior before project client setup.
+                Process.Start(new ProcessStartInfo($"mtasa://{host}:{port}")
+                    { UseShellExecute = true });
+                StatusText.Text =
+                    "Запускается установленный MTA. Для отдельного клиента открой настройки.";
+            }
         }
         catch (Exception ex)
         {
@@ -520,6 +570,7 @@ public partial class MainWindow : Window
             ? "Исходная GTA SA не выбрана" : _gameSourcePath;
         UpdateInstallOption.IsChecked = _gameInstallMode == "update";
         FullInstallOption.IsChecked = _gameInstallMode != "update";
+        UpdateClientFolderPreview();
     }
 
     private void BrowseInstallFolder_Click(object sender, RoutedEventArgs e)
@@ -532,7 +583,77 @@ public partial class MainWindow : Window
                 ? InstallPathBox.Text : ""
         };
         if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
             InstallPathBox.Text = dialog.SelectedPath;
+            UpdateClientFolderPreview();
+        }
+    }
+
+    private void UpdateClientFolderPreview()
+    {
+        var root = InstallPathBox.Text;
+        if (string.IsNullOrWhiteSpace(root) || root == "Папка пока не выбрана")
+        {
+            GtaLocationText.Text = "GTA San Andreas — выбери папку проекта";
+            MtaLocationText.Text = "MTA San Andreas — выбери папку проекта";
+            MtaInstallStatusText.Text = "MTA ещё не установлен в папку проекта";
+            return;
+        }
+
+        try
+        {
+            GtaLocationText.Text = GameClientInstaller.GtaDirectory(root);
+            MtaLocationText.Text = GameClientInstaller.MtaDirectory(root);
+            MtaInstallStatusText.Text = GameClientInstaller.HasLocalMta(root)
+                ? "Клиент MTA обнаружен в папке проекта"
+                : "Установи официальный MTA в указанную папку";
+        }
+        catch
+        {
+            GtaLocationText.Text = "Недопустимая папка клиента";
+            MtaLocationText.Text = "Недопустимая папка клиента";
+            MtaInstallStatusText.Text = "Выбери другую папку";
+        }
+    }
+
+    private void DownloadOfficialMta_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo("https://multitheftauto.com/")
+            {
+                UseShellExecute = true
+            });
+            InstallStatusText.Text =
+                "Установи MTA в папку MTA San Andreas и укажи GTA San Andreas из сборки.";
+        }
+        catch (Exception ex)
+        {
+            InstallStatusText.Text = "Не удалось открыть сайт MTA: " + ex.Message;
+        }
+    }
+
+    private void CopyMtaPaths_Click(object sender, RoutedEventArgs e)
+    {
+        var root = InstallPathBox.Text;
+        if (string.IsNullOrWhiteSpace(root) || root == "Папка пока не выбрана")
+        {
+            InstallStatusText.Text = "Сначала выбери папку MARCH ROLE PLAY.";
+            return;
+        }
+
+        try
+        {
+            System.Windows.Clipboard.SetText("Папка установки MTA: " +
+                GameClientInstaller.MtaDirectory(root) + Environment.NewLine +
+                "Папка GTA San Andreas: " +
+                GameClientInstaller.GtaDirectory(root));
+            InstallStatusText.Text = "Оба пути для установщика MTA скопированы.";
+        }
+        catch (Exception ex)
+        {
+            InstallStatusText.Text = "Не удалось скопировать пути: " + ex.Message;
+        }
     }
 
     private void BrowseGtaSource_Click(object sender, RoutedEventArgs e)
@@ -604,7 +725,8 @@ public partial class MainWindow : Window
 
             InstallStatusText.Text = update
                 ? "Обновления проверены. Игровые файлы актуальны."
-                : "Копия GTA SA установлена. Теперь выбери «Обновить файлы».";
+                : "GTA SA готова. Установи официальный MTA в соседнюю папку.";
+            UpdateClientFolderPreview();
         }
         catch (OperationCanceledException)
         {

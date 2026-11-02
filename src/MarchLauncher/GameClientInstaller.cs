@@ -11,6 +11,23 @@ namespace MarchLauncher;
 /// </summary>
 internal static class GameClientInstaller
 {
+    public const string GtaFolderName = "GTA San Andreas";
+    public const string MtaFolderName = "MTA San Andreas";
+    public const string AssetsFolderName = "MARCH Assets";
+
+    public static string GtaDirectory(string root) =>
+        Path.Combine(Path.GetFullPath(root), GtaFolderName);
+
+    public static string MtaDirectory(string root) =>
+        Path.Combine(Path.GetFullPath(root), MtaFolderName);
+
+    public static string LocalMtaExecutable(string root) =>
+        Path.Combine(MtaDirectory(root), "Multi Theft Auto.exe");
+
+    public static bool HasLocalMta(string root) =>
+        File.Exists(LocalMtaExecutable(root)) &&
+        File.Exists(Path.Combine(MtaDirectory(root), "MTA", "core.dll"));
+
     // Published by the project, not editable by players from the UI.
     private static readonly Uri ManifestUrl = new(
         "https://raw.githubusercontent.com/VladZeleznij/Vlados1k1/main/client/manifest.json");
@@ -47,7 +64,7 @@ internal static class GameClientInstaller
             throw new InvalidOperationException(
                 "Выбери папку с легально установленной GTA San Andreas (gta_sa.exe и models\\gta3.img).");
 
-        var destination = Path.Combine(installRoot, "GTA San Andreas");
+        var destination = GtaDirectory(installRoot);
         if (Overlaps(source, installRoot) || Overlaps(source, destination))
             throw new InvalidOperationException(
                 "Папка клиента должна находиться отдельно от исходной GTA San Andreas.");
@@ -98,8 +115,13 @@ internal static class GameClientInstaller
             }
         }, cancel);
 
+        // GTA and MTA must stay in separate sibling folders, sharing only
+        // the outer MARCH ROLE PLAY installation directory.
+        Directory.CreateDirectory(MtaDirectory(installRoot));
+        Directory.CreateDirectory(Path.Combine(installRoot, AssetsFolderName));
+
         progress.Report(new InstallProgress(
-            "Копия GTA SA готова. Исходная игра не изменена.", 100));
+            "GTA SA готова. Следующий шаг — установить MTA в соседнюю папку.", 100));
     }
 
     public static async Task UpdateProjectFilesAsync(
@@ -107,7 +129,7 @@ internal static class GameClientInstaller
         CancellationToken cancel)
     {
         installRoot = Path.GetFullPath(installRoot.Trim());
-        if (!File.Exists(Path.Combine(installRoot, "GTA San Andreas", "gta_sa.exe")))
+        if (!File.Exists(Path.Combine(GtaDirectory(installRoot), "gta_sa.exe")))
             throw new InvalidOperationException(
                 "Сначала установи отдельную копию GTA SA через «Полная установка».");
 
@@ -213,7 +235,7 @@ internal static class GameClientInstaller
 
         // Never allow a remote manifest to modify the licensed game, launcher
         // binaries, credentials or user settings. Only game project assets.
-        var assets = Path.Combine(root, "MARCH Assets") +
+        var assets = Path.Combine(root, AssetsFolderName) +
             Path.DirectorySeparatorChar;
         if (!dest.StartsWith(assets, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException(
