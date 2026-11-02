@@ -113,6 +113,38 @@ internal static class WindowsCredentialStore
         finally { CredFree(ptr); }
     }
 
+    /// <summary>
+    /// Restores a previously saved user even if an older launcher build lost
+    /// its username checkbox value in launcher-settings.json.
+    /// </summary>
+    public static (string Username, string Password)? ReadSaved()
+    {
+        if (!CredRead(Target, CredTypeGeneric, 0, out var ptr))
+        {
+            var code = Marshal.GetLastWin32Error();
+            if (code == ErrorNotFound) return null;
+            throw new Win32Exception(code, "Не удалось восстановить сохранённый аккаунт.");
+        }
+
+        try
+        {
+            var credential = Marshal.PtrToStructure<Credential>(ptr);
+            if (string.IsNullOrWhiteSpace(credential.UserName) ||
+                credential.CredentialBlob == IntPtr.Zero ||
+                credential.CredentialBlobSize == 0 ||
+                (credential.CredentialBlobSize % 2) != 0 ||
+                credential.CredentialBlobSize > 1024)
+                return null;
+
+            var password = Marshal.PtrToStringUni(
+                credential.CredentialBlob, checked((int)credential.CredentialBlobSize / 2));
+            return string.IsNullOrEmpty(password)
+                ? null
+                : (credential.UserName, password);
+        }
+        finally { CredFree(ptr); }
+    }
+
     public static void Delete()
     {
         if (CredDelete(Target, CredTypeGeneric, 0)) return;
