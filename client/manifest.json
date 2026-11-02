@@ -1,4 +1,11 @@
 {
-  "version": "0.1.0",
-  "files": []
+  "version": "0.2.0",
+  "files": [
+    {
+      "path": "MARCH Assets/client-pack.json",
+      "url": "https://raw.githubusercontent.com/VladZeleznij/Vlados1k1/main/client/assets/client-pack.json",
+      "sha256": "882063D900F93ADBA5CEA3FAD67D6D6EAB8B9E52543A993400BA7988EAE51D62",
+      "size": 187
+    }
+  ]
 }
