@@ -1,0 +1,254 @@
+<Window x:Class="MarchLauncher.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="MARCH ROLE PLAY — Настройки" Width="910" Height="642"
+        MinWidth="800" MinHeight="600"
+        WindowStartupLocation="CenterOwner" WindowStyle="None"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        Background="#07131D" Foreground="#F1FAFF">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="0"
+                            GlassFrameThickness="0" CornerRadius="0"
+                            UseAeroCaptionButtons="False"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="Accent" Color="#09E4DC"/>
+        <SolidColorBrush x:Key="Muted" Color="#91ACBD"/>
+        <DropShadowEffect x:Key="AccentGlow" Color="#00DCD4" BlurRadius="16" ShadowDepth="0" Opacity=".35"/>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#041820"/>
+            <Setter Property="Background" Value="#0BDFD8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,11"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Surface" CornerRadius="8"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Surface" Property="Opacity" Value=".85"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Surface" Property="Background" Value="#213944"/>
+                                <Setter Property="Foreground" Value="#7795A3"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="OutlineButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#15323D"/>
+            <Setter Property="Foreground" Value="#CFFBFA"/>
+        </Style>
+        <Style TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#DAF3F6"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Border BorderBrush="#225361" BorderThickness="1">
+        <Grid>
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#0B1D28" Offset="0"/>
+                    <GradientStop Color="#07131D" Offset=".6"/>
+                    <GradientStop Color="#0A1A25" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="51"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="76"/>
+            </Grid.RowDefinitions>
+
+            <!-- Custom frame: no white Windows title strip. -->
+            <Grid Grid.Row="0" Background="#0C202B"
+                  MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="52"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="23,0">
+                    <TextBlock Text="M" Foreground="{StaticResource Accent}"
+                               FontStyle="Italic" FontWeight="Black" FontSize="24"/>
+                    <TextBlock Text=" MARCH ROLE PLAY" FontWeight="SemiBold" FontSize="12"
+                               VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    <TextBlock Text="  /  НАСТРОЙКИ" Foreground="#7F9EB1" FontSize="11"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="✕" FontSize="18"
+                        Foreground="#C4DCE3" Background="Transparent"
+                        BorderThickness="0" Cursor="Hand"
+                        Click="CloseButton_Click"/>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="25,25,25,17">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="270"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Actual selectable directory; game downloads are not yet implemented. -->
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="НАСТРОЙКИ ЛАУНЧЕРА"
+                               Foreground="#86ACB8" FontSize="12"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="Установка игры" FontSize="34" FontWeight="Black"
+                               Margin="0,7,0,0" Foreground="#F4FFFF"/>
+                    <TextBlock Text="Выбери, куда будут устанавливаться игровые файлы MARCH ROLE PLAY."
+                               FontSize="13" Foreground="{StaticResource Muted}"
+                               TextWrapping="Wrap" Margin="0,8,16,19"/>
+
+                    <Border CornerRadius="12" BorderBrush="#2A5964"
+                            BorderThickness="1" Background="#102733" Padding="19">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="34" Height="34" CornerRadius="7" Background="#104C53">
+                                    <Viewbox Margin="7">
+                                        <Path Fill="{StaticResource Accent}"
+                                              Data="M10,4H2C0.9,4 0,4.9 0,6V18C0,19.1 0.9,20 2,20H22C23.1,20 24,19.1 24,18V8C24,6.9 23.1,6 22,6H12L10,4ZM2,8H22V18H2V8Z"/>
+                                    </Viewbox>
+                                </Border>
+                                <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="ПАПКА УСТАНОВКИ" FontWeight="Bold"
+                                               Foreground="#F3FFFF" FontSize="14"/>
+                                    <TextBlock Text="Расположение будущих файлов клиента"
+                                               Foreground="#91B6C1" FontSize="11" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Text="ПУТЬ К ПАПКЕ" Foreground="#9ABCCA"
+                                       FontSize="11" Margin="0,21,0,7"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="9"/>
+                                    <ColumnDefinition Width="121"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Background="#081C25" BorderBrush="#28515E"
+                                        BorderThickness="1" CornerRadius="7" Height="44">
+                                    <TextBox x:Name="InstallPathBox" IsReadOnly="True"
+                                             BorderThickness="0" Background="Transparent"
+                                             Foreground="#DDF6FA" FontSize="12"
+                                             VerticalContentAlignment="Center"
+                                             Padding="12,0" TextTrimming="None"
+                                             ToolTip="Выбранный путь для будущей установки"/>
+                                </Border>
+                                <Button Grid.Column="2" Content="ОБЗОР"
+                                        Height="44" Style="{StaticResource OutlineButton}"
+                                        Click="BrowseInstallFolder_Click"/>
+                            </Grid>
+                            <TextBlock Text="Папка сохранится в настройках лаунчера."
+                                       FontSize="11" Foreground="#7EA7B2"
+                                       Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="ВАРИАНТ УСТАНОВКИ" Foreground="#9ABCCA"
+                               FontSize="11" FontWeight="Bold" Margin="0,20,0,11"/>
+                    <Border Background="#102733" CornerRadius="9"
+                            BorderThickness="1" BorderBrush="#23505B" Padding="15,13">
+                        <StackPanel>
+                            <RadioButton x:Name="FullInstallOption" GroupName="InstallMode"
+                                         IsChecked="True" Content="Полная установка"/>
+                            <TextBlock Text="Все необходимые файлы игрового клиента"
+                                       FontSize="11" Foreground="#89AAB6"
+                                       Margin="22,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#102733" CornerRadius="9" Margin="0,9,0,0"
+                            BorderThickness="1" BorderBrush="#23505B" Padding="15,13">
+                        <StackPanel>
+                            <RadioButton x:Name="UpdateInstallOption" GroupName="InstallMode"
+                                         Content="Обновить файлы"/>
+                            <TextBlock Text="Проверка и загрузка изменённых файлов — позже"
+                                       FontSize="11" Foreground="#89AAB6"
+                                       Margin="22,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Clean product-style preview, not real progress or fake metrics. -->
+                <Border Grid.Column="2" CornerRadius="12" BorderBrush="#2A5663"
+                        BorderThickness="1" ClipToBounds="True">
+                    <Grid>
+                        <Grid.Background>
+                            <ImageBrush ImageSource="/news3.jpg" Stretch="UniformToFill" Opacity=".28"/>
+                        </Grid.Background>
+                        <Rectangle>
+                            <Rectangle.Fill>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#D20A222D" Offset="0"/>
+                                    <GradientStop Color="#F5071620" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <StackPanel Margin="20,24" VerticalAlignment="Top">
+                            <Border Background="#104A51" CornerRadius="6"
+                                    Padding="10,6" HorizontalAlignment="Left">
+                                <TextBlock Text="СКОРО" Foreground="{StaticResource Accent}"
+                                           FontSize="11" FontWeight="Bold"/>
+                            </Border>
+                            <TextBlock Text="MARCH" FontSize="45" FontStyle="Italic"
+                                       FontWeight="Black" Foreground="{StaticResource Accent}"
+                                       Effect="{StaticResource AccentGlow}" Margin="0,26,0,0"/>
+                            <TextBlock Text="R O L E  P L A Y" FontWeight="Bold"
+                                       FontSize="13" Foreground="#F5FFFF"/>
+                            <Rectangle Height="1" Fill="#3A7180" Margin="0,24,0,18"/>
+                            <TextBlock Text="ИГРОВОЙ КЛИЕНТ" FontWeight="Bold" FontSize="13"/>
+                            <TextBlock Text="Здесь появятся проверка файлов, скачивание и ход установки."
+                                       TextWrapping="Wrap" Foreground="#A2BECC"
+                                       FontSize="12" Margin="0,9,0,0"/>
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Bottom" Margin="20,0,20,22">
+                            <TextBlock Text="УСТАНОВКА ПОКА НЕДОСТУПНА"
+                                       Foreground="#8EA9B4" FontWeight="Bold" FontSize="10"
+                                       TextWrapping="Wrap" Margin="0,0,0,11"/>
+                            <Button Content="УСТАНОВИТЬ ИГРУ" Height="45"
+                                    IsEnabled="False"
+                                    Style="{StaticResource PrimaryButton}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="2" Background="#0B1B26" BorderBrush="#23434D"
+                    BorderThickness="0,1,0,0">
+                <Grid Margin="25,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="13"/>
+                        <ColumnDefinition Width="172"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="НАСТРОЙКИ УСТАНОВКИ" FontWeight="Bold"
+                                   FontSize="11" Foreground="#B3D2DB"/>
+                        <TextBlock Text="Выбор папки работает. Скачивание добавим позднее."
+                                   Foreground="#819DAA" FontSize="11" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="ОТМЕНА" Height="40"
+                            Style="{StaticResource OutlineButton}" Click="CancelButton_Click"/>
+                    <Button Grid.Column="3" Content="СОХРАНИТЬ" Height="40"
+                            Style="{StaticResource PrimaryButton}" Click="SaveButton_Click"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
