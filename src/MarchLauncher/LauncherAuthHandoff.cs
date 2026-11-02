@@ -1,204 +1,176 @@
+using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 
 namespace MarchLauncher;
 
 /// <summary>
-/// Temporary local-only handoff to the MTA server running on the SAME Windows PC.
-/// The login password is kept in RAM and given out only once. No listener is opened
-/// to a LAN or public IP address. Never use this protocol for remote deployments.
+/// Local development SSO for march_auth on the SAME Windows computer as MTA.
+/// No MTA fetchRemote loopback HTTP calls (often blocked as error 1006).
+/// A single-use credential ticket lives briefly in the server resource folder,
+/// then MTA deletes it BEFORE checking credentials against its existing database.
+/// NOT suitable for remote/public authentication servers.
 /// </summary>
 internal sealed class LauncherAuthHandoff : IDisposable
 {
-    public const int Port = 28745;
+    private const string TicketName = "launcher_sso_pending.json";
+    private const string ResultName = "launcher_sso_result.json";
+    private static readonly TimeSpan Lifetime = TimeSpan.FromSeconds(120);
 
-    private readonly object _gate = new();
-    private readonly TcpListener _listener;
-    private readonly CancellationTokenSource _stop = new();
+    private sealed record Pending(string Id, string Folder, DateTimeOffset Expiry);
     private Pending? _pending;
 
+    public bool HasPending => _pending is { } p && DateTimeOffset.UtcNow < p.Expiry;
     public event Action<bool, string>? Completed;
 
-    private sealed record Pending(
-        string Id, string Mode, string Username, string Password,
-        DateTime ExpiresAt, bool Delivered);
-
-    public LauncherAuthHandoff()
+    public void Prepare(string mode, string username, string password, string selectedResourceFolder, string mtaFolder)
     {
-        _listener = new TcpListener(IPAddress.Loopback, Port);
-        _listener.Start(4);
-        _ = AcceptLoopAsync(_stop.Token);
-    }
+        if (mode is not ("login" or "register"))
+            throw new ArgumentException("Unsupported mode", nameof(mode));
 
-    public void Prepare(string mode, string username, string password)
-    {
-        // The server independently checks these values before logging anyone in.
-        if (mode != "login" && mode != "register")
-            throw new ArgumentException("Unsupported authentication mode.", nameof(mode));
-        lock (_gate)
+        var folder = FindResourceFolder(selectedResourceFolder, mtaFolder);
+        if (folder is null)
+            throw new DirectoryNotFoundException(
+                "Не найдена папка серверного ресурса march_auth. Запусти MTA-сервер или выбери эту папку в настройках лаунчера.");
+
+        var item = new Pending(Guid.NewGuid().ToString("N"), folder, DateTimeOffset.UtcNow.Add(Lifetime));
+        var path = Path.Combine(folder, TicketName);
+        var temp = Path.Combine(folder, "launcher_sso_pending." + item.Id + ".tmp");
+
+        // Avoid sharing credentials with MTA's client downloads or the HTTP
+        // resource server: this file is intentionally NOT declared in meta.xml.
+        var data = JsonSerializer.Serialize(new
         {
-            _pending = new Pending(
-                Guid.NewGuid().ToString("N"), mode, username, password,
-                DateTime.UtcNow.AddMinutes(5), false);
-        }
-    }
-
-    public void CancelPending()
-    {
-        lock (_gate) _pending = null;
-    }
-
-    private object TakePending()
-    {
-        lock (_gate)
-        {
-            var item = _pending;
-            if (item == null || item.ExpiresAt <= DateTime.UtcNow || item.Delivered)
-                return new { ok = false };
-
-            // Replace the in-memory secret with empty text after a single handoff.
-            _pending = item with { Password = "", Delivered = true };
-            return new
-            {
-                ok = true,
-                id = item.Id,
-                mode = item.Mode,
-                username = item.Username,
-                password = item.Password
-            };
-        }
-    }
-
-    private void ReportResult(string body)
-    {
+            ok = true,
+            id = item.Id,
+            mode,
+            username,
+            password,
+            expiresAt = item.Expiry.ToUnixTimeSeconds()
+        });
         try
         {
-            using var doc = JsonDocument.Parse(body);
-            var root = doc.RootElement;
-            var id = root.GetProperty("id").GetString();
-            var ok = root.GetProperty("ok").GetBoolean();
-            var message = root.GetProperty("message").GetString() ?? "";
-
-            lock (_gate)
-            {
-                if (_pending == null || !_pending.Delivered ||
-                    _pending.ExpiresAt <= DateTime.UtcNow ||
-                    !string.Equals(_pending.Id, id, StringComparison.Ordinal))
-                    return;
-                _pending = null;
-            }
-            Completed?.Invoke(ok, message.Length > 240 ? message[..240] : message);
+            File.WriteAllText(temp, data, new UTF8Encoding(false));
+            File.Move(temp, path, overwrite: true); // atomically publish complete ticket
+            _pending = item;                        // no password retained in the record
         }
-        catch (JsonException) { }
-        catch (KeyNotFoundException) { }
-        catch (InvalidOperationException) { }
-    }
-
-    private async Task AcceptLoopAsync(CancellationToken ct)
-    {
-        while (!ct.IsCancellationRequested)
+        finally
         {
-            try
-            {
-                var client = await _listener.AcceptTcpClientAsync(ct);
-                _ = HandleClientAsync(client, ct);
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
-            catch (ObjectDisposedException) when (ct.IsCancellationRequested) { break; }
-            catch (SocketException) when (ct.IsCancellationRequested) { break; }
+            if (File.Exists(temp)) File.Delete(temp);
         }
     }
 
-    private async Task HandleClientAsync(TcpClient client, CancellationToken stop)
+    public void PollResult()
     {
-        using (client)
+        var item = _pending;
+        if (item is null) return;
+
+        var path = Path.Combine(item.Folder, ResultName);
+        if (File.Exists(path))
         {
-            if (client.Client.RemoteEndPoint is not IPEndPoint remote ||
-                !IPAddress.IsLoopback(remote.Address))
-                return;
-
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(stop);
-            timeout.CancelAfter(TimeSpan.FromSeconds(5));
-            var ct = timeout.Token;
-
             try
             {
-                using var stream = client.GetStream();
-                using var reader = new StreamReader(stream, new UTF8Encoding(false),
-                    detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
-                var requestLine = await reader.ReadLineAsync(ct) ?? "";
-                if (requestLine.Length > 300)
-                    return;
-
-                var contentLength = 0;
-                for (int index = 0; index < 32; index++)
+                var content = File.ReadAllText(path, Encoding.UTF8);
+                using var json = JsonDocument.Parse(content);
+                var root = json.RootElement;
+                if (root.GetProperty("id").GetString() == item.Id)
                 {
-                    var line = await reader.ReadLineAsync(ct);
-                    if (line == null) return;
-                    if (line.Length == 0) break;
-                    if (line.Length > 2048) return;
-                    if (line.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase) &&
-                        !int.TryParse(line["Content-Length:".Length..].Trim(), out contentLength))
-                        return;
-                }
-                if (contentLength < 0 || contentLength > 4096) return;
-
-                object response;
-                if (requestLine.StartsWith("GET /pending ", StringComparison.Ordinal))
-                {
-                    response = TakePending();
-                }
-                else if (requestLine.StartsWith("POST /result ", StringComparison.Ordinal) &&
-                         contentLength > 0)
-                {
-                    var content = new char[contentLength];
-                    var offset = 0;
-                    while (offset < content.Length)
-                    {
-                        var count = await reader.ReadAsync(content.AsMemory(offset), ct);
-                        if (count <= 0) return;
-                        offset += count;
-                    }
-                    ReportResult(new string(content));
-                    response = new { ok = true };
-                }
-                else
-                {
-                    await SendAsync(stream, 404, new { ok = false, error = "not found" }, ct);
+                    var success = root.GetProperty("ok").GetBoolean();
+                    var message = root.GetProperty("message").GetString() ?? "invalid_request";
+                    _pending = null;
+                    File.Delete(path);
+                    Completed?.Invoke(success, message);
                     return;
                 }
-
-                await SendAsync(stream, 200, response, ct);
             }
-            catch (OperationCanceledException) { }
+            catch (IOException) { }        // server may still be writing
+            catch (JsonException) { }      // server may still be writing
+            catch (KeyNotFoundException) { }
+            catch (InvalidOperationException) { }
+        }
+
+        if (DateTimeOffset.UtcNow >= item.Expiry)
+        {
+            _pending = null;
+            try
+            {
+                var pendingPath = Path.Combine(item.Folder, TicketName);
+                if (File.Exists(pendingPath) && File.ReadAllText(pendingPath).Contains(item.Id, StringComparison.Ordinal))
+                    File.Delete(pendingPath);
+            }
             catch (IOException) { }
-            catch (SocketException) { }
+            catch (UnauthorizedAccessException) { }
+            Completed?.Invoke(false, "handoff_expired");
         }
     }
 
-    private static async Task SendAsync(NetworkStream stream, int status, object body, CancellationToken ct)
+    public static string? FindResourceFolder(string configured, string mtaFolder)
     {
-        var json = JsonSerializer.SerializeToUtf8Bytes(body);
-        var header = Encoding.ASCII.GetBytes(
-            $"HTTP/1.1 {status} {(status == 200 ? "OK" : "Not Found")}\r\n" +
-            "Content-Type: application/json; charset=utf-8\r\n" +
-            "Cache-Control: no-store\r\n" +
-            "X-Content-Type-Options: nosniff\r\n" +
-            "Connection: close\r\n" +
-            $"Content-Length: {json.Length}\r\n\r\n");
-        await stream.WriteAsync(header, ct);
-        await stream.WriteAsync(json, ct);
-        await stream.FlushAsync(ct);
+        var roots = new List<string>();
+        if (!string.IsNullOrWhiteSpace(configured)) roots.Add(configured);
+        if (!string.IsNullOrWhiteSpace(mtaFolder)) roots.Add(mtaFolder);
+
+        foreach (var process in Process.GetProcesses())
+        {
+            try
+            {
+                if (process.ProcessName.Contains("MTA Server", StringComparison.OrdinalIgnoreCase) ||
+                    process.ProcessName.Contains("mtaserver", StringComparison.OrdinalIgnoreCase))
+                {
+                    var executable = process.MainModule?.FileName;
+                    if (executable is not null) roots.Add(Path.GetDirectoryName(executable)!);
+                }
+            }
+            catch (System.ComponentModel.Win32Exception) { }
+            catch (InvalidOperationException) { }
+            finally { process.Dispose(); }
+        }
+
+        roots.Add(AppContext.BaseDirectory);
+        foreach (var candidate in roots)
+        {
+            try
+            {
+                if (!Directory.Exists(candidate)) continue;
+                var baseDir = Path.GetFullPath(candidate);
+                if (string.Equals(Path.GetFileName(baseDir.TrimEnd(Path.DirectorySeparatorChar)),
+                    "march_auth", StringComparison.OrdinalIgnoreCase) &&
+                    File.Exists(Path.Combine(baseDir, "meta.xml")))
+                    return baseDir;
+
+                var dir = baseDir;
+                for (var depth = 0; depth < 3 && dir is not null; depth++)
+                {
+                    var resources = Path.Combine(dir, "mods", "deathmatch", "resources");
+                    if (Directory.Exists(resources))
+                    {
+                        var found = SearchResources(resources);
+                        if (found is not null) return found;
+                    }
+                    dir = Directory.GetParent(dir)?.FullName;
+                }
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
+        return null;
     }
 
-    public void Dispose()
+    private static string? SearchResources(string resources)
     {
-        CancelPending();
-        _stop.Cancel();
-        _listener.Stop();
-        _stop.Dispose();
+        var direct = Path.Combine(resources, "march_auth");
+        if (File.Exists(Path.Combine(direct, "meta.xml"))) return direct;
+
+        // Some MTA servers organize resources in [categories].
+        foreach (var category in Directory.EnumerateDirectories(resources))
+        {
+            if (!Path.GetFileName(category).StartsWith("[", StringComparison.Ordinal)) continue;
+            var nested = Path.Combine(category, "march_auth");
+            if (File.Exists(Path.Combine(nested, "meta.xml"))) return nested;
+        }
+        return null;
     }
+
+    public void Dispose() { /* ticket remains valid if player closes launcher while game loads */ }
 }
