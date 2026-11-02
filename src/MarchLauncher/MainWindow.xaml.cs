@@ -24,6 +24,10 @@ public partial class MainWindow : Window
     private string _authResourceFolder = "";
     private string _gameInstallPath = "";
     private string _gameInstallMode = "full";
+    private readonly MtaGamePresenceMonitor _gamePresenceMonitor = new();
+    private readonly DispatcherTimer _gamePresenceTimer =
+        new() { Interval = TimeSpan.FromSeconds(5) };
+    private bool _checkingGamePresence;
     private readonly string _settingsFile = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "MARCH ROLE PLAY", "launcher-settings.json");
@@ -56,9 +60,42 @@ public partial class MainWindow : Window
         }
         _discordPresence.Configure(DiscordApplicationId);
         _monitorTimer.Tick += async (_, _) => await UpdateServerStatusAsync();
+        _gamePresenceTimer.Tick += async (_, _) => await UpdateGamePresenceAsync();
+        _gamePresenceTimer.Start();
         _monitorTimer.Start();
-        Loaded += async (_, _) => await UpdateServerStatusAsync();
-        Closed += (_, _) => { _monitorTimer.Stop(); _authResultTimer.Stop(); _discordPresence.Dispose(); _authHandoff?.Dispose(); };
+        Loaded += async (_, _) =>
+        {
+            await UpdateServerStatusAsync();
+            await UpdateGamePresenceAsync();
+        };
+        Closed += (_, _) =>
+        {
+            _monitorTimer.Stop();
+            _gamePresenceTimer.Stop();
+            _authResultTimer.Stop();
+            _discordPresence.Dispose();
+            _authHandoff?.Dispose();
+        };
+    }
+
+    private async Task UpdateGamePresenceAsync()
+    {
+        if (_checkingGamePresence) return;
+        _checkingGamePresence = true;
+        try
+        {
+            var nickname = await Task.Run(() =>
+                _gamePresenceMonitor.GetAuthenticatedNickname(
+                    _authResourceFolder, _mtaFolder));
+            // Discord shows a game nickname only when march_auth has confirmed
+            // an actual local player session within the last twenty seconds.
+            _discordPresence.UpdateGameSession(nickname);
+        }
+        catch (Exception)
+        {
+            _discordPresence.UpdateGameSession(null);
+        }
+        finally { _checkingGamePresence = false; }
     }
 
     private async Task UpdateServerStatusAsync()
@@ -126,31 +163,42 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (!File.Exists(_settingsFile)) return;
-            var settings = JsonSerializer.Deserialize<LauncherSettings>(File.ReadAllText(_settingsFile));
-            if (settings is null) return;
-            _mtaFolder = settings.MtaPath ?? "";
-            _authResourceFolder = settings.AuthResourcePath ?? "";
-            _gameInstallPath = settings.GameInstallPath ?? "";
-            _gameInstallMode = settings.GameInstallMode == "update" ? "update" : "full";
-            _telegramUrl = settings.TelegramUrl ?? "";
-            _vkUrl = settings.VkUrl ?? "";
-            RememberLoginBox.IsChecked = settings.RememberUsername;
-            if (settings.RememberUsername && !string.IsNullOrWhiteSpace(settings.Username))
+            LauncherSettings? settings = null;
+            if (File.Exists(_settingsFile))
+                settings = JsonSerializer.Deserialize<LauncherSettings>(
+                    File.ReadAllText(_settingsFile));
+            if (settings != null)
             {
-                LoginUsernameBox.Text = settings.Username;
-                try
-                {
-                    var password = WindowsCredentialStore.Read(settings.Username);
-                    if (password is not null) LoginPasswordBox.Password = password;
-                }
-                catch (Exception ex)
-                {
-                    LauncherLoginStatusText.Text = "Логин восстановлен, но пароль не удалось прочитать: " + ex.Message;
-                }
+                _mtaFolder = settings.MtaPath ?? "";
+                _authResourceFolder = settings.AuthResourcePath ?? "";
+                _gameInstallPath = settings.GameInstallPath ?? "";
+                _gameInstallMode = settings.GameInstallMode == "update"
+                    ? "update" : "full";
+                _telegramUrl = settings.TelegramUrl ?? "";
+                _vkUrl = settings.VkUrl ?? "";
+                RememberLoginBox.IsChecked = settings.RememberUsername;
+                if (settings.RememberUsername &&
+                    !string.IsNullOrWhiteSpace(settings.Username))
+                    LoginUsernameBox.Text = settings.Username;
+            }
+
+            // Restore the Windows vault credential independently of old JSON
+            // checkbox values, which sometimes changed during launcher updates.
+            var savedAccount = WindowsCredentialStore.ReadSaved();
+            if (savedAccount.HasValue)
+            {
+                LoginUsernameBox.Text = savedAccount.Value.Username;
+                LoginPasswordBox.Password = savedAccount.Value.Password;
+                RememberLoginBox.IsChecked = true;
+                LauncherLoginStatusText.Text =
+                    "Данные аккаунта восстановлены. Нажми «ИГРАТЬ» для автовхода.";
             }
         }
-        catch { StatusText.Text = "Не удалось прочитать сохранённые настройки"; }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Не удалось восстановить настройки аккаунта: " +
+                ex.Message;
+        }
     }
 
     private void SaveSettings()
@@ -360,28 +408,26 @@ public partial class MainWindow : Window
 
     private void PlayButton_Click(object sender, RoutedEventArgs e)
     {
-        // Play also stages credentials, so clicking "ВОЙТИ" first is optional.
-        // A remembered username WITHOUT a password must not block manual MTA login.
-        if (RightTabs.SelectedIndex == 1)
+        // If a player left the Registration tab open, still use saved LOGIN
+        // credentials when no registration form was filled.
+        if (RightTabs.SelectedIndex == 1 &&
+            (RegisterPasswordBox.Password.Length > 0 ||
+             RegisterRepeatPasswordBox.Password.Length > 0))
         {
             var password = RegisterPasswordBox.Password;
-            if (password.Length > 0 || RegisterRepeatPasswordBox.Password.Length > 0)
+            if (password != RegisterRepeatPasswordBox.Password)
             {
-                if (password != RegisterRepeatPasswordBox.Password)
-                {
-                    LauncherRegisterStatusText.Text = "Пароли не совпадают.";
-                    return;
-                }
-                if (!PrepareLauncherAuth("register", RegisterUsernameBox.Text, password))
-                    return;
+                LauncherRegisterStatusText.Text = "Пароли не совпадают.";
+                return;
             }
+            if (!PrepareLauncherAuth("register", RegisterUsernameBox.Text, password))
+                return;
         }
         else if (LoginPasswordBox.Password.Length > 0 &&
                  !PrepareLauncherAuth("login", LoginUsernameBox.Text,
                      LoginPasswordBox.Password))
-        {
             return;
-        }
+
         LaunchMta();
     }
 
@@ -412,28 +458,95 @@ public partial class MainWindow : Window
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
-    private void NewsButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Новости проекта отображаются на главной.";
-    private void PromoButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Промокоды будут доступны после подключения серверного API.";
-    private void AccountButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 0; StatusText.Text = "Введи данные для входа и нажми «ИГРАТЬ»."; }
+    private void NewsButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowDashboard();
+        StatusText.Text = "Новости проекта отображаются на главной.";
+    }
+    private void PromoButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowDashboard();
+        StatusText.Text = "Промокоды будут доступны после подключения серверного API.";
+    }
+    private void AccountButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowDashboard();
+        RightTabs.SelectedIndex = 0;
+        StatusText.Text = "Введи данные для входа и нажми «ИГРАТЬ».";
+    }
+    private void ShowDashboard()
+    {
+        SettingsView.Visibility = Visibility.Collapsed;
+        DashboardView.Visibility = Visibility.Visible;
+        HomeNavButton.Background = new System.Windows.Media.SolidColorBrush(
+            System.Windows.Media.Color.FromRgb(0, 125, 137));
+        SettingsNavButton.Background = new System.Windows.Media.SolidColorBrush(
+            System.Windows.Media.Color.FromRgb(20, 43, 56));
+        HomeNavButton.Effect = FindResource("NeonGlow") as System.Windows.Media.Effects.Effect;
+        SettingsNavButton.Effect = null;
+    }
+
+    private void HomeButton_Click(object sender, RoutedEventArgs e) =>
+        ShowDashboard();
+
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        // Settings have their own branded window; login/register tabs remain
-        // untouched, and the existing SSO resource path remains internal.
-        var panel = new SettingsWindow(_gameInstallPath, _gameInstallMode) { Owner = this };
-        if (panel.ShowDialog() != true) return;
+        DashboardView.Visibility = Visibility.Collapsed;
+        SettingsView.Visibility = Visibility.Visible;
+        SettingsNavButton.Background = new System.Windows.Media.SolidColorBrush(
+            System.Windows.Media.Color.FromRgb(0, 125, 137));
+        HomeNavButton.Background = new System.Windows.Media.SolidColorBrush(
+            System.Windows.Media.Color.FromRgb(20, 43, 56));
+        SettingsNavButton.Effect =
+            FindResource("NeonGlow") as System.Windows.Media.Effects.Effect;
+        HomeNavButton.Effect = null;
 
-        _gameInstallPath = panel.InstallDirectory;
-        _gameInstallMode = panel.InstallMode;
+        // Discard any unsaved UI edits when returning to the settings tab.
+        InstallPathBox.Text = string.IsNullOrWhiteSpace(_gameInstallPath)
+            ? "Папка пока не выбрана" : _gameInstallPath;
+        UpdateInstallOption.IsChecked = _gameInstallMode == "update";
+        FullInstallOption.IsChecked = _gameInstallMode != "update";
+    }
+
+    private void BrowseInstallFolder_Click(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Выбери папку для установки файлов MARCH ROLE PLAY",
+            UseDescriptionForTitle = true,
+            SelectedPath = Directory.Exists(InstallPathBox.Text)
+                ? InstallPathBox.Text : ""
+        };
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            InstallPathBox.Text = dialog.SelectedPath;
+    }
+
+    private void SettingsSave_Click(object sender, RoutedEventArgs e)
+    {
+        // This only saves future installer preferences.
+        // No game file download or modification occurs here.
+        var oldPath = _gameInstallPath;
+        var oldMode = _gameInstallMode;
+        _gameInstallPath = InstallPathBox.Text == "Папка пока не выбрана"
+            ? "" : InstallPathBox.Text;
+        _gameInstallMode = UpdateInstallOption.IsChecked == true
+            ? "update" : "full";
         try
         {
             SaveSettings();
-            StatusText.Text = "Настройки будущей установки сохранены.";
+            StatusText.Text = "Папка и вариант будущей установки сохранены.";
+            ShowDashboard();
         }
         catch (Exception ex)
         {
-            StatusText.Text = "Не удалось сохранить настройки: " + ex.Message;
+            _gameInstallPath = oldPath;
+            _gameInstallMode = oldMode;
+            StatusText.Text = "Не удалось сохранить настройки установки: " + ex.Message;
         }
     }
+
+    private void SettingsBack_Click(object sender, RoutedEventArgs e) =>
+        ShowDashboard();
 
     private sealed record LauncherSettings(
         string MtaPath, string Host, int Port,
