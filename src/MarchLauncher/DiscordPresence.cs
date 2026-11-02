@@ -17,6 +17,23 @@ internal sealed class DiscordPresence : IDisposable
     private readonly long _startedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     private readonly SemaphoreSlim _onlineChanged = new(0, 1);
     private string _serverOnline = "Онлайн сервера: проверка...";
+    private string _gameNickname = "";
+
+    /// <summary>
+    /// Only a fresh, server-confirmed authenticated local MTA session can set
+    /// the nickname. An empty value restores the ordinary launcher activity.
+    /// </summary>
+    public void UpdateGameSession(string? nickname)
+    {
+        var clean = nickname?.Trim() ?? "";
+        if (clean.Length > 32) clean = clean[..32];
+        if (string.Equals(Volatile.Read(ref _gameNickname), clean, StringComparison.Ordinal))
+            return;
+
+        Volatile.Write(ref _gameNickname, clean);
+        if (_onlineChanged.CurrentCount == 0)
+            _onlineChanged.Release();
+    }
 
     /// <summary>Receives the same verified online counts as the MTA monitor.</summary>
     public void UpdateServerOnline(int? online, int? maximum)
@@ -87,8 +104,12 @@ internal sealed class DiscordPresence : IDisposable
                                     pid = Environment.ProcessId,
                                     activity = new
                                     {
-                                        details = "В лаунчере MARCH ROLE PLAY",
-                                        state = Volatile.Read(ref _serverOnline),
+                                        details = string.IsNullOrEmpty(Volatile.Read(ref _gameNickname))
+                                            ? "В лаунчере MARCH ROLE PLAY"
+                                            : "На сервере MARCH ROLE PLAY",
+                                        state = string.IsNullOrEmpty(Volatile.Read(ref _gameNickname))
+                                            ? Volatile.Read(ref _serverOnline)
+                                            : "Ник: " + Volatile.Read(ref _gameNickname),
                                         timestamps = new { start = _startedAt }
                                     }
                                 },
