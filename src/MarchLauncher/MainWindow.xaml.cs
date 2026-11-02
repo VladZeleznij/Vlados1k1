@@ -26,6 +26,7 @@ public partial class MainWindow : Window
     private LauncherAuthHandoff? _authHandoff;
     private string _authHandoffError = "";
     private readonly DispatcherTimer _monitorTimer = new() { Interval = TimeSpan.FromSeconds(20) };
+    private readonly DispatcherTimer _authResultTimer = new() { Interval = TimeSpan.FromMilliseconds(400) };
     private bool _checkingServer;
 
     public MainWindow()
@@ -37,8 +38,9 @@ public partial class MainWindow : Window
         try
         {
             _authHandoff = new LauncherAuthHandoff();
-            _authHandoff.Completed += (ok, code) =>
-                Dispatcher.BeginInvoke(new Action(() => HandleGameAuthResult(ok, code)));
+            _authHandoff.Completed += (ok, code) => HandleGameAuthResult(ok, code);
+            _authResultTimer.Tick += (_, _) => _authHandoff.PollResult();
+            _authResultTimer.Start();
         }
         catch (Exception ex)
         {
@@ -50,7 +52,7 @@ public partial class MainWindow : Window
         _monitorTimer.Tick += async (_, _) => await UpdateServerStatusAsync();
         _monitorTimer.Start();
         Loaded += async (_, _) => await UpdateServerStatusAsync();
-        Closed += (_, _) => { _monitorTimer.Stop(); _discordPresence.Dispose(); _authHandoff?.Dispose(); };
+        Closed += (_, _) => { _monitorTimer.Stop(); _authResultTimer.Stop(); _discordPresence.Dispose(); _authHandoff?.Dispose(); };
     }
 
     private async Task UpdateServerStatusAsync()
@@ -122,6 +124,7 @@ public partial class MainWindow : Window
             var settings = JsonSerializer.Deserialize<LauncherSettings>(File.ReadAllText(_settingsFile));
             if (settings is null) return;
             MtaPathBox.Text = settings.MtaPath ?? "";
+            AuthResourcePathBox.Text = settings.AuthResourcePath ?? "";
             _telegramUrl = settings.TelegramUrl ?? "";
             _vkUrl = settings.VkUrl ?? "";
             if (settings.RememberUsername && !string.IsNullOrWhiteSpace(settings.Username))
@@ -139,7 +142,8 @@ public partial class MainWindow : Window
         var settings = new LauncherSettings(MtaPathBox.Text.Trim(), "127.0.0.1", 22003,
             DiscordApplicationId, _telegramUrl, _vkUrl, DiscordInviteUrl,
             RememberLoginBox.IsChecked == true ? LoginUsernameBox.Text.Trim() : "",
-            RememberLoginBox.IsChecked == true);
+            RememberLoginBox.IsChecked == true,
+            AuthResourcePathBox.Text.Trim());
         File.WriteAllText(_settingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
     }
 
@@ -197,6 +201,8 @@ public partial class MainWindow : Window
             "hash_error" => "Не удалось обработать пароль для регистрации.",
             "already_logged_in" => "Аккаунт уже авторизован в игре.",
             "invalid_request" => "Неправильный запрос авторизации.",
+            "handoff_expired" => "MTA не принял данные в течение двух минут. Проверь версию march_auth и папку сервера.",
+            "rate_limited" => "Слишком частые попытки входа. Подожди несколько секунд.",
             _ => "Ответ сервера: " + code
         };
     }
@@ -236,38 +242,44 @@ public partial class MainWindow : Window
         return true;
     }
 
-    private void PrepareLauncherAuth(string mode, string username, string password)
+    private bool PrepareLauncherAuth(string mode, string username, string password)
     {
         var target = mode == "login" ? LauncherLoginStatusText : LauncherRegisterStatusText;
         if (_authHandoff == null)
         {
-            target.Text = "Не удалось включить локальный мост (127.0.0.1:28745): " +
-                _authHandoffError;
-            return;
+            target.Text = "Мост авторизации недоступен: " + _authHandoffError;
+            return false;
         }
         username = username.Trim();
         if (!ValidateCredentials(mode, username, password, out var error))
         {
             target.Text = error;
-            return;
+            return false;
         }
 
         try
         {
-            _authHandoff.Prepare(mode, username, password);
+            _authHandoff.Prepare(mode, username, password,
+                AuthResourcePathBox.Text.Trim(), MtaPathBox.Text.Trim());
             if (mode == "login") SaveSettings();
-            target.Text = "Данные готовы. Нажми «ИГРАТЬ»: сервер проверит их при подключении. " +
-                "Пароль не сохранён на диск.";
-            StatusText.Text = "Вход подготовлен для MTA. Нажми «ИГРАТЬ».";
+            target.Text = "Данные для входа подготовлены. Нажми «ИГРАТЬ»: " +
+                "march_auth проверит аккаунт автоматически.";
+            StatusText.Text = "Автовход подготовлен. Нажми «ИГРАТЬ».";
+            return true;
         }
         catch (Exception ex)
         {
             target.Text = "Не удалось подготовить авторизацию: " + ex.Message;
+            StatusText.Text = target.Text;
+            return false;
         }
     }
 
-    private void LoginActionButton_Click(object sender, RoutedEventArgs e) =>
-        PrepareLauncherAuth("login", LoginUsernameBox.Text, LoginPasswordBox.Password);
+    private void LoginActionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (PrepareLauncherAuth("login", LoginUsernameBox.Text, LoginPasswordBox.Password))
+            LaunchMta();
+    }
 
     private void RegisterActionButton_Click(object sender, RoutedEventArgs e)
     {
@@ -277,7 +289,27 @@ public partial class MainWindow : Window
             LauncherRegisterStatusText.Text = "Пароли не совпадают.";
             return;
         }
-        PrepareLauncherAuth("register", RegisterUsernameBox.Text, password);
+        if (PrepareLauncherAuth("register", RegisterUsernameBox.Text, password))
+            LaunchMta();
+    }
+
+    private void BrowseAuthResource_Click(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Выбери папку march_auth на компьютере с MTA-сервером",
+            UseDescriptionForTitle = true
+        };
+        if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+        if (!File.Exists(Path.Combine(dialog.SelectedPath, "meta.xml")) ||
+            !string.Equals(Path.GetFileName(dialog.SelectedPath.TrimEnd('\\')),
+                "march_auth", StringComparison.OrdinalIgnoreCase))
+        {
+            StatusText.Text = "Нужно выбрать именно папку ресурса march_auth с meta.xml.";
+            return;
+        }
+        AuthResourcePathBox.Text = dialog.SelectedPath;
+        SaveSettings();
     }
 
     private void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -293,22 +325,53 @@ public partial class MainWindow : Window
 
     private void PlayButton_Click(object sender, RoutedEventArgs e)
     {
+        // No separate "ВОЙТИ" click is required: the Play button stages the
+        // credentials directly from the currently selected auth form.
+        if (_authHandoff?.HasPending != true)
+        {
+            if (RightTabs.SelectedIndex == 1)
+            {
+                var login = RegisterUsernameBox.Text.Trim();
+                var password = RegisterPasswordBox.Password;
+                if (login.Length > 0 || password.Length > 0)
+                {
+                    if (password != RegisterRepeatPasswordBox.Password)
+                    {
+                        LauncherRegisterStatusText.Text = "Пароли не совпадают.";
+                        return;
+                    }
+                    if (!PrepareLauncherAuth("register", login, password)) return;
+                }
+            }
+            else
+            {
+                var login = LoginUsernameBox.Text.Trim();
+                var password = LoginPasswordBox.Password;
+                if (login.Length > 0 || password.Length > 0)
+                {
+                    if (!PrepareLauncherAuth("login", login, password)) return;
+                }
+            }
+        }
+        LaunchMta();
+    }
+
+    private void LaunchMta()
+    {
         const string host = "127.0.0.1";
         const int port = 22003;
-
         try
         {
             SaveSettings();
-            var uri = $"mtasa://{host}:{port}";
-            // Use the Windows-registered MTA protocol handler: passing mtasa:// as a
-            // raw argument to Multi Theft Auto.exe does not reliably connect.
-            Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
-            StatusText.Text = "MTA запускается. Подключаемся к " + host + ":" + port;
+            Process.Start(new ProcessStartInfo($"mtasa://{host}:{port}")
+                { UseShellExecute = true });
+            StatusText.Text = _authHandoff?.HasPending == true
+                ? "MTA запускается. Данные переданы локальному серверу, ждём подтверждение входа."
+                : "MTA запускается. Ввод пароля в игре доступен как обычно.";
         }
         catch (Exception ex)
         {
-            StatusText.Text = "Не удалось открыть MTA: " + ex.Message +
-                ". Установи MTA и запусти её хотя бы один раз.";
+            StatusText.Text = "Не удалось открыть MTA: " + ex.Message;
         }
     }
 
@@ -332,5 +395,6 @@ public partial class MainWindow : Window
         string? VkUrl = null,
         string? DiscordInviteUrl = null,
         string? Username = null,
-        bool RememberUsername = false);
+        bool RememberUsername = false,
+        string? AuthResourcePath = null);
 }
