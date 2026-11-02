@@ -18,6 +18,10 @@ public partial class MainWindow : Window
     // Legacy social links are still respected if they were configured previously.
     private string _telegramUrl = "";
     private string _vkUrl = "";
+    // Preserve previously configured paths even though the folder selection
+    // controls are intentionally removed from launcher settings.
+    private string _mtaFolder = "";
+    private string _authResourceFolder = "";
     private readonly string _settingsFile = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "MARCH ROLE PLAY", "launcher-settings.json");
@@ -123,14 +127,23 @@ public partial class MainWindow : Window
             if (!File.Exists(_settingsFile)) return;
             var settings = JsonSerializer.Deserialize<LauncherSettings>(File.ReadAllText(_settingsFile));
             if (settings is null) return;
-            MtaPathBox.Text = settings.MtaPath ?? "";
-            AuthResourcePathBox.Text = settings.AuthResourcePath ?? "";
+            _mtaFolder = settings.MtaPath ?? "";
+            _authResourceFolder = settings.AuthResourcePath ?? "";
             _telegramUrl = settings.TelegramUrl ?? "";
             _vkUrl = settings.VkUrl ?? "";
+            RememberLoginBox.IsChecked = settings.RememberUsername;
             if (settings.RememberUsername && !string.IsNullOrWhiteSpace(settings.Username))
             {
                 LoginUsernameBox.Text = settings.Username;
-                RememberLoginBox.IsChecked = true;
+                try
+                {
+                    var password = WindowsCredentialStore.Read(settings.Username);
+                    if (password is not null) LoginPasswordBox.Password = password;
+                }
+                catch (Exception ex)
+                {
+                    LauncherLoginStatusText.Text = "Логин восстановлен, но пароль не удалось прочитать: " + ex.Message;
+                }
             }
         }
         catch { StatusText.Text = "Не удалось прочитать сохранённые настройки"; }
@@ -139,11 +152,11 @@ public partial class MainWindow : Window
     private void SaveSettings()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_settingsFile)!);
-        var settings = new LauncherSettings(MtaPathBox.Text.Trim(), "127.0.0.1", 22003,
+        var settings = new LauncherSettings(_mtaFolder, "127.0.0.1", 22003,
             DiscordApplicationId, _telegramUrl, _vkUrl, DiscordInviteUrl,
             RememberLoginBox.IsChecked == true ? LoginUsernameBox.Text.Trim() : "",
             RememberLoginBox.IsChecked == true,
-            AuthResourcePathBox.Text.Trim());
+            _authResourceFolder);
         File.WriteAllText(_settingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
     }
 
@@ -215,7 +228,37 @@ public partial class MainWindow : Window
         StatusText.Text = message;
         if (ok)
         {
-            LoginPasswordBox.Clear();
+            if (code == "registration_success")
+            {
+                // Reuse the newly registered profile when the launcher starts
+                // the next time; both registration fields are cleared below.
+                LoginUsernameBox.Text = RegisterUsernameBox.Text.Trim();
+                LoginPasswordBox.Password = RegisterPasswordBox.Password;
+            }
+
+            try
+            {
+                SaveSettings();
+                if (RememberLoginBox.IsChecked == true &&
+                    !string.IsNullOrWhiteSpace(LoginUsernameBox.Text) &&
+                    LoginPasswordBox.Password.Length > 0)
+                {
+                    WindowsCredentialStore.Save(
+                        LoginUsernameBox.Text.Trim(), LoginPasswordBox.Password);
+                    LauncherLoginStatusText.Text = message + " Логин и пароль сохранены в Windows.";
+                }
+                else
+                {
+                    WindowsCredentialStore.Delete();
+                    LoginPasswordBox.Clear();
+                }
+            }
+            catch (Exception ex)
+            {
+                LauncherLoginStatusText.Text = message +
+                    " Не удалось сохранить пароль: " + ex.Message;
+            }
+
             RegisterPasswordBox.Clear();
             RegisterRepeatPasswordBox.Clear();
         }
@@ -260,7 +303,7 @@ public partial class MainWindow : Window
         try
         {
             _authHandoff.Prepare(mode, username, password,
-                AuthResourcePathBox.Text.Trim(), MtaPathBox.Text.Trim());
+                _authResourceFolder, _mtaFolder);
             if (mode == "login") SaveSettings();
             target.Text = "Данные для входа подготовлены. Нажми «ИГРАТЬ»: " +
                 "march_auth проверит аккаунт автоматически.";
@@ -293,34 +336,21 @@ public partial class MainWindow : Window
             LaunchMta();
     }
 
-    private void BrowseAuthResource_Click(object sender, RoutedEventArgs e)
+    private void RememberLogin_Click(object sender, RoutedEventArgs e)
     {
-        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        try
         {
-            Description = "Выбери папку march_auth на компьютере с MTA-сервером",
-            UseDescriptionForTitle = true
-        };
-        if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-        if (!File.Exists(Path.Combine(dialog.SelectedPath, "meta.xml")) ||
-            !string.Equals(Path.GetFileName(dialog.SelectedPath.TrimEnd('\\')),
-                "march_auth", StringComparison.OrdinalIgnoreCase))
-        {
-            StatusText.Text = "Нужно выбрать именно папку ресурса march_auth с meta.xml.";
-            return;
+            if (RememberLoginBox.IsChecked != true)
+            {
+                WindowsCredentialStore.Delete();
+                LauncherLoginStatusText.Text = "Сохранённый пароль удалён из Windows. Данные текущего входа можно использовать.";
+            }
+            SaveSettings();
         }
-        AuthResourcePathBox.Text = dialog.SelectedPath;
-        SaveSettings();
-    }
-
-    private void BrowseButton_Click(object sender, RoutedEventArgs e)
-    {
-        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        catch (Exception ex)
         {
-            Description = "Выберите папку Multi Theft Auto",
-            UseDescriptionForTitle = true
-        };
-        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            MtaPathBox.Text = dialog.SelectedPath;
+            LauncherLoginStatusText.Text = "Не удалось изменить сохранение пароля: " + ex.Message;
+        }
     }
 
     private void PlayButton_Click(object sender, RoutedEventArgs e)
@@ -380,7 +410,7 @@ public partial class MainWindow : Window
     private void NewsButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Новости проекта отображаются на главной.";
     private void PromoButton_Click(object sender, RoutedEventArgs e) => StatusText.Text = "Промокоды будут доступны после подключения серверного API.";
     private void AccountButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 0; StatusText.Text = "Введи данные для входа и нажми «ИГРАТЬ»."; }
-    private void SettingsButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 2; MtaPathBox.Focus(); StatusText.Text = "Настройки сервера находятся справа."; }
+    private void SettingsButton_Click(object sender, RoutedEventArgs e) { RightTabs.SelectedIndex = 2; StatusText.Text = "Настройки подключения применяются автоматически."; }
 
     private sealed record LauncherSettings(
         string MtaPath, string Host, int Port,
