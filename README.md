@@ -5,15 +5,23 @@ Actual Windows WPF/.NET 8 launcher built into a self-contained `win-x64` release
 ## Launch
 Download the successful build artifact **MARCH-ROLE-PLAY-Launcher-win-x64**. Extract the full folder and run **MARCH ROLE PLAY Launcher.exe**. MTA is launched through the registered `mtasa://127.0.0.1:22003` protocol. Online server monitoring uses MTA ASE UDP 22126.
 
-## Login and registration with existing MTA march_auth
+## Launcher login and registration through march_auth 1.5.2 (local development)
 
-The launcher now supports a **local-only**, one-time password handoff to the user's existing `march_auth` authentication resource. This is designed for a Windows PC running BOTH the launcher and the MTA server. The launcher stores the password **only in RAM** for up to five minutes and opens a loopback-only service on `127.0.0.1:28745`. It does not access SQLite or store passwords in settings.
+**New SSO fix v2** eliminates the old HTTP fetchRemote request to localhost, which MTA can block with error 1006. A single-use authentication ticket is instead handed off using short-lived files inside the existing `march_auth` **server resource directory** on the same Windows PC.
 
-**Required server update:** Install the **`march_auth` v1.5.2 Launcher SSO** patch built specifically against the actual uploaded `march_auth.zip` (meta.xml version 1.5.2). It updates **`march_auth/server/main.lua`**, **`march_auth/client/main.lua`**, **`march_auth/server/spawn.lua`** and **`march_auth/client/spawn.lua`**, uses the *existing* SQLite `march_accounts.db`, passwordHash/passwordVerify with bcrypt, original spawn flow and MTA ACL behavior. Back up the database and existing scripts before replacing the four Lua files only. Do not delete or replace existing `march_accounts.db`. If your currently installed `march_auth` is NEWER than 1.5.2, merge carefully instead of overwriting newer script changes.
+1. Install the **MARCH_ROLE_PLAY_Auth_1.5.2_LAUNCHER_SSO_FIX_v2.zip** patch into the *existing* MTA resource `mods/deathmatch/resources/march_auth`; replace only these files: `server/main.lua`, `server/spawn.lua`, `client/main.lua`, `client/spawn.lua`. **Back up `march_auth` first. Preserve `march_accounts.db`, `march_spawns.db` and `meta.xml`.**
+2. In the MTA server console run `stop march_auth`, `refresh`, `start march_auth` around installation.
+3. Download the latest successful Windows launcher build via [GitHub Actions](https://github.com/VladZeleznij/Vlados1k1/actions).
+4. Start the local MTA server on the same PC as the launcher. Enter login and password, click **ВОЙТИ**; the launcher launches MTA and the server validates credentials against the **existing** bcrypt/SQLite accounts (and native MTA accounts for ACL admins). The **ИГРАТЬ** button also prepares filled credentials automatically.
+5. The launcher tries to find the local server's running process and `march_auth` resource directory automatically. If it cannot, in the launcher **Настройки → ВЫБРАТЬ ПАПКУ march_auth**, select the existing folder containing `meta.xml`, and retry.
 
-Then restart the **`march_auth`** resource, enter credentials in the launcher, click **ВОЙТИ** or **ЗАРЕГИСТРИРОВАТЬСЯ**, then **ИГРАТЬ**. If valid, the game logs in with the same existing account and hides its login panel. Without the server patch the launcher has no way to authenticate against the existing SQLite DB; in-game login remains available.
+### Debugging SSO
 
-**Important security limitation:** This prototype requires the launcher and server to be on the **same local computer**. For a public/remote server use a proper server-managed HTTPS authentication endpoint with short-lived one-time game-session exchange and anti-bruteforce protection. Never expose port 28745 over the network.
+The launcher shows an explicit folder-not-found, invalid-credentials, or no-response result. A pending ticket file named `launcher_sso_pending.json` and server response `launcher_sso_result.json` are temporary and must never be listed in `meta.xml` or shared publicly. For more MTA diagnostics use `/debugscript 3` and server logs. Existing manual game login remains available if no SSO ticket was prepared.
+
+### Security scope
+
+This is **local testing only**, NOT production/public-server authentication. A ticket briefly contains the entered password in an on-disk file (up to 2 minutes), is removed by MTA on consumption, and is not saved in launcher settings. Closing or crashing MTA before consumption can leave the file until its lifetime expires and the server reads it; handle the server resource folder as sensitive. The ticket is never sent to remote clients in `meta.xml`; only an MTA player connecting from loopback is eligible. For users connecting to another computer, replace this with a server-managed **HTTPS session API**, strict per-user binding, replay protection, and short-lived tokens.
 
 ## Discord Rich Presence
 
