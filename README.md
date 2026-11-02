@@ -36,6 +36,20 @@ The sidebar includes Telegram, VK and Discord vector icons. Discord uses the pro
 On successful game login or registration, checking **Запомнить логин и пароль** saves the password as a generic credential in the current Windows user's Credential Manager. The app settings JSON only stores the optional username, not the password. Next launch fills both fields automatically. Unchecking the option deletes the stored Windows credential. Older builds did not save passwords: log in once using the new build to activate this feature. The short-lived SSO ticket inside the local MTA server resource is a separate temporary transport and should not be shared publicly.
 
 
-## Installation settings preview
+## Installation settings inside the launcher
 
-The sidebar **Настройки** opens a separate cinematic settings window. Its current preview lets the player **choose and save the future game installation folder** and select **Полная установка** or **Обновить файлы**. These preferences are written to the existing `launcher-settings.json`, preserving local MTA/march_auth discovery paths and account settings. The **УСТАНОВИТЬ ИГРУ** button remains intentionally disabled: no game files are currently downloaded or modified by this panel. The login and registration tabs on the main launcher remain unchanged.
+The sidebar **Настройки** switches the main launcher content to a full-size **Установка игры** page. **Главная** and **Назад** return to the dashboard; the login and registration forms remain unchanged. The folder browser and **Полная установка / Обновить файлы** choices are working save-only preferences in `launcher-settings.json`. Actual download/install is disabled until the installer backend is implemented. No separate WPF popup is used.
+
+## Discord game-session presence (local MTA server)
+
+Install **MARCH_ROLE_PLAY_Auth_1.5.2_DISCORD_GAME_STATUS_PATCH.zip** over the existing `march_auth/server/main.lua` from the working SSO v2 patch, and restart `march_auth`. Back up this file first and keep all databases and other files untouched.
+
+The server writes `launcher_discord_session.json` with only a server-verified local logged-in player's nickname and a timestamp; it refreshes every five seconds and removes the file on logout. The launcher treats a session as valid only for twenty seconds and sends either:
+- **В лаунчере MARCH ROLE PLAY** — if nobody is authenticated locally, together with normal server population.
+- **На сервере MARCH ROLE PLAY** — after an authenticated local game login, including the actual nickname and online count.
+
+Discord's desktop activity display must be enabled. This requires a local MTA server and a launcher running on the same computer, and is not designed for public remote players.
+
+## Saved-password restoration
+
+When the player has previously checked **Запомнить логин и пароль** and completed a successful server login, Windows Credential Manager stores a generic credential for the Windows user. The launcher restores it even when an older launcher version did not preserve the JSON checkbox. A normal **Играть** click automatically prepares the SSO ticket using that saved credential, including when the Registration tab is open but unused. Unchecking the remember option deletes the stored credential.
