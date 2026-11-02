@@ -25,6 +25,8 @@ public partial class MainWindow : Window
     private string _gameInstallPath = "";
     private string _gameSourcePath = "";
     private CancellationTokenSource? _installerCancellation;
+    private Task<bool>? _clientUpdateInFlight;
+    private bool _launchingAfterUpdates;
     private string _gameInstallMode = "full";
     private readonly MtaGamePresenceMonitor _gamePresenceMonitor = new();
     private readonly DispatcherTimer _gamePresenceTimer =
@@ -69,6 +71,9 @@ public partial class MainWindow : Window
         {
             await UpdateServerStatusAsync();
             await UpdateGamePresenceAsync();
+            // First launch check: missing or changed MARCH Assets are restored automatically.
+            if (!string.IsNullOrWhiteSpace(_gameInstallPath))
+                _ = EnsureClientUpdatedAsync();
         };
         Closed += (_, _) =>
         {
@@ -383,22 +388,46 @@ public partial class MainWindow : Window
         }
     }
 
-    private void LoginActionButton_Click(object sender, RoutedEventArgs e)
+    private async void LoginActionButton_Click(object sender, RoutedEventArgs e)
     {
-        if (PrepareLauncherAuth("login", LoginUsernameBox.Text, LoginPasswordBox.Password))
-            LaunchMta();
+        if (_launchingAfterUpdates) return;
+        _launchingAfterUpdates = true;
+        LoginActionButton.IsEnabled = false;
+        try
+        {
+            if (!await ClientReadyToPlayAsync()) return;
+            if (PrepareLauncherAuth("login", LoginUsernameBox.Text, LoginPasswordBox.Password))
+                LaunchMta();
+        }
+        finally
+        {
+            LoginActionButton.IsEnabled = true;
+            _launchingAfterUpdates = false;
+        }
     }
 
-    private void RegisterActionButton_Click(object sender, RoutedEventArgs e)
+    private async void RegisterActionButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_launchingAfterUpdates) return;
         var password = RegisterPasswordBox.Password;
         if (!string.Equals(password, RegisterRepeatPasswordBox.Password, StringComparison.Ordinal))
         {
             LauncherRegisterStatusText.Text = "Пароли не совпадают.";
             return;
         }
-        if (PrepareLauncherAuth("register", RegisterUsernameBox.Text, password))
-            LaunchMta();
+        _launchingAfterUpdates = true;
+        RegisterActionButton.IsEnabled = false;
+        try
+        {
+            if (!await ClientReadyToPlayAsync()) return;
+            if (PrepareLauncherAuth("register", RegisterUsernameBox.Text, password))
+                LaunchMta();
+        }
+        finally
+        {
+            RegisterActionButton.IsEnabled = true;
+            _launchingAfterUpdates = false;
+        }
     }
 
     private void RememberLogin_Click(object sender, RoutedEventArgs e)
@@ -418,8 +447,15 @@ public partial class MainWindow : Window
         }
     }
 
-    private void PlayButton_Click(object sender, RoutedEventArgs e)
+    private async void PlayButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_launchingAfterUpdates) return;
+        _launchingAfterUpdates = true;
+        PlayButton.IsEnabled = false;
+        try
+        {
+            if (!await ClientReadyToPlayAsync()) return;
+
         // If a player left the Registration tab open, still use saved LOGIN
         // credentials when no registration form was filled.
         if (RightTabs.SelectedIndex == 1 &&
@@ -441,6 +477,105 @@ public partial class MainWindow : Window
             return;
 
         LaunchMta();
+        }
+        finally
+        {
+            PlayButton.IsEnabled = true;
+            _launchingAfterUpdates = false;
+        }
+    }
+
+    private async Task<bool> ClientReadyToPlayAsync()
+    {
+        // Keep legacy local developer flow intact when no project client is configured.
+        if (string.IsNullOrWhiteSpace(_gameInstallPath)) return true;
+        var ready = await EnsureClientUpdatedAsync();
+        if (!ready) StatusText.Text =
+            "Игровой клиент не готов. Исправь ошибку проверки файлов перед входом.";
+        return ready;
+    }
+
+    private Task<bool> EnsureClientUpdatedAsync()
+    {
+        // Reuse the currently running check when Play is pressed during startup scan.
+        if (_clientUpdateInFlight is { IsCompleted: false })
+            return _clientUpdateInFlight;
+        _clientUpdateInFlight = CheckAndInstallClientUpdatesAsync();
+        return _clientUpdateInFlight;
+    }
+
+    private async Task<bool> CheckAndInstallClientUpdatesAsync()
+    {
+        var root = _gameInstallPath;
+        if (string.IsNullOrWhiteSpace(root))
+        {
+            ClientUpdateStatusText.Text = "Сначала выбери папку игры в настройках.";
+            return false;
+        }
+
+        UpdateCheckButton.IsEnabled = false;
+        ClientUpdateProgressBar.Value = 0;
+        ClientUpdateStatusText.Text = "Проверяем файлы игрового клиента...";
+        try
+        {
+            // Licensed GTA files are repaired only from the user's own installation.
+            var gta = GameClientInstaller.GtaDirectory(root);
+            if (!File.Exists(Path.Combine(gta, "gta_sa.exe")) ||
+                !File.Exists(Path.Combine(gta, "models", "gta3.img")))
+            {
+                if (!Directory.Exists(_gameSourcePath))
+                {
+                    ClientUpdateStatusText.Text =
+                        "Не хватает GTA SA. Укажи исходную GTA в разделе «Установка игры».";
+                    return false;
+                }
+
+                ClientUpdateStatusText.Text = "Восстанавливаем GTA из твоей установки...";
+                var gameProgress = new Progress<GameClientInstaller.InstallProgress>(p =>
+                {
+                    ClientUpdateProgressBar.Value = p.Percent;
+                    ClientUpdateStatusText.Text = p.Message;
+                });
+                await GameClientInstaller.CopyOwnedGameAsync(
+                    _gameSourcePath, root, gameProgress, CancellationToken.None);
+                ClientUpdateProgressBar.Value = 0;
+            }
+
+            var progress = new Progress<ProjectUpdateService.ProgressInfo>(p =>
+            {
+                ClientUpdateProgressBar.Value = p.Percent;
+                ClientUpdateStatusText.Text = p.Message;
+            });
+            var result = await ProjectUpdateService.CheckAndRepairAsync(
+                root, progress, CancellationToken.None);
+            ClientUpdateStatusText.Text = result.DownloadedFiles == 0
+                ? $"Все файлы актуальны • версия {result.Version}"
+                : $"Установлено недостающих/обновлённых файлов: {result.DownloadedFiles} • версия {result.Version}";
+            ClientUpdateProgressBar.Value = 100;
+
+            if (!GameClientInstaller.HasLocalMta(root))
+            {
+                ClientUpdateStatusText.Text =
+                    "Файлы проекта готовы, но MTA не установлен. Открой настройки.";
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ClientUpdateStatusText.Text = "Ошибка проверки: " + ex.Message;
+            return false;
+        }
+        finally
+        {
+            UpdateCheckButton.IsEnabled = true;
+        }
+    }
+
+    private async void UpdateCheckButton_Click(object sender, RoutedEventArgs e)
+    {
+        await EnsureClientUpdatedAsync();
     }
 
     private void LaunchMta()
@@ -717,15 +852,27 @@ public partial class MainWindow : Window
         try
         {
             if (update)
-                await GameClientInstaller.UpdateProjectFilesAsync(target, progress,
-                    cancellation.Token);
+            {
+                var assetProgress = new Progress<ProjectUpdateService.ProgressInfo>(p =>
+                {
+                    InstallProgressBar.Value = p.Percent;
+                    InstallStatusText.Text = p.Message;
+                    ClientUpdateStatusText.Text = p.Message;
+                    ClientUpdateProgressBar.Value = p.Percent;
+                });
+                var result = await ProjectUpdateService.CheckAndRepairAsync(
+                    target, assetProgress, cancellation.Token);
+                InstallStatusText.Text = $"Проверено {result.TotalFiles} файлов. " +
+                    $"Установлено {result.DownloadedFiles}. Версия {result.Version}.";
+                ClientUpdateStatusText.Text = InstallStatusText.Text;
+            }
             else
+            {
                 await GameClientInstaller.CopyOwnedGameAsync(source, target, progress,
                     cancellation.Token);
-
-            InstallStatusText.Text = update
-                ? "Обновления проверены. Игровые файлы актуальны."
-                : "GTA SA готова. Установи официальный MTA в соседнюю папку.";
+                InstallStatusText.Text =
+                    "GTA SA готова. MTA устанавливается из официального источника.";
+            }
             UpdateClientFolderPreview();
         }
         catch (OperationCanceledException)
