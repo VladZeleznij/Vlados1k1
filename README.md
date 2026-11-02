@@ -34,3 +34,8 @@ The sidebar includes Telegram, VK and Discord vector icons. Discord uses the pro
 ## Remembering account credentials
 
 On successful game login or registration, checking **Запомнить логин и пароль** saves the password as a generic credential in the current Windows user's Credential Manager. The app settings JSON only stores the optional username, not the password. Next launch fills both fields automatically. Unchecking the option deletes the stored Windows credential. Older builds did not save passwords: log in once using the new build to activate this feature. The short-lived SSO ticket inside the local MTA server resource is a separate temporary transport and should not be shared publicly.
+
+
+## Installation settings preview
+
+The sidebar **Настройки** opens a separate cinematic settings window. Its current preview lets the player **choose and save the future game installation folder** and select **Полная установка** or **Обновить файлы**. These preferences are written to the existing `launcher-settings.json`, preserving local MTA/march_auth discovery paths and account settings. The **УСТАНОВИТЬ ИГРУ** button remains intentionally disabled: no game files are currently downloaded or modified by this panel. The login and registration tabs on the main launcher remain unchanged.
