@@ -644,7 +644,7 @@ public partial class MainWindow : Window
 
         try
         {
-            Clipboard.SetText("Папка установки MTA: " +
+            System.Windows.Clipboard.SetText("Папка установки MTA: " +
                 GameClientInstaller.MtaDirectory(root) + Environment.NewLine +
                 "Папка GTA San Andreas: " +
                 GameClientInstaller.GtaDirectory(root));
