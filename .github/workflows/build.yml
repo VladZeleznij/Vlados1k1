@@ -2,6 +2,11 @@ name: Build MARCH ROLE PLAY Launcher
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - '.github/workflows/build.yml'
   push:
     branches: [ main ]
     paths:
