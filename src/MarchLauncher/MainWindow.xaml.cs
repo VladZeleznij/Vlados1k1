@@ -865,7 +865,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            var decision = MessageBox.Show(
+            var decision = System.Windows.MessageBox.Show(
                 "Найдена GTA San Andreas:\n" + owned + "\n\n" +
                 "ПЕРЕМЕСТИТЬ её в:\n" + gta + "\n\n" +
                 "Это перемещение, НЕ копирование. Старая папка исчезнет, " +
