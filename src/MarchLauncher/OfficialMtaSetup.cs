@@ -187,7 +187,7 @@ internal static class OfficialMtaSetup
                 throw new InvalidDataException("Размер установщика MTA превышает лимит.");
 
             await using (var input = await response.Content.ReadAsStreamAsync(cancel))
-            await using (var output = new FileStream(part, FileMode.Create,
+            await using (var output = new FileStream(partial, FileMode.Create,
                 FileAccess.Write, FileShare.None, 131072, useAsync: true))
             {
                 var buffer = new byte[131072];
@@ -209,12 +209,12 @@ internal static class OfficialMtaSetup
             }
 
             // Only accept a Windows executable, and only from the hardcoded official HTTPS URL.
-            await using (var input = File.OpenRead(part))
+            await using (var input = File.OpenRead(partial))
             {
                 if (input.ReadByte() != 'M' || input.ReadByte() != 'Z')
                     throw new InvalidDataException("Неправильный формат установщика MTA.");
             }
-            File.Move(part, file, overwrite: true);
+            File.Move(partial, file, overwrite: true);
         }
         finally
         {
