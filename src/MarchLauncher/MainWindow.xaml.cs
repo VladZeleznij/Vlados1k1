@@ -634,11 +634,10 @@ public partial class MainWindow : Window
             }
             else
             {
-                // Preserve the original launcher behavior before project client setup.
-                Process.Start(new ProcessStartInfo($"mtasa://{host}:{port}")
-                    { UseShellExecute = true });
-                StatusText.Text =
-                    "Запускается установленный MTA. Для отдельного клиента открой настройки.";
+                // Do not rely on the mtasa:// Windows URL association alone:
+                // many user installations skip it. Find the official installed
+                // Multi Theft Auto.exe and pass the URI directly as an argument.
+                StatusText.Text = MtaClientLauncher.Start(_mtaFolder, _gameInstallPath);
             }
         }
         catch (Exception ex)
