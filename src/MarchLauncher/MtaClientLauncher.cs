@@ -170,11 +170,11 @@ internal static class MtaClientLauncher
         // Handles both the usual quoted command and MTA installer commands
         // which sometimes omit a space before "%1".
         var match = Regex.Match(registryCommand,
-            "^\\s*\\"(?<path>[^\\"]+?\\.exe)\\"", RegexOptions.IgnoreCase);
+            @"^\s*""(?<path>[^""]+?\.exe)""", RegexOptions.IgnoreCase);
         if (match.Success) return match.Groups["path"].Value;
 
         match = Regex.Match(registryCommand,
-            "^\\s*(?<path>.+?\\.exe)(?:\\s|\\"|$)", RegexOptions.IgnoreCase);
+            @"^\s*(?<path>.+?\.exe)(?:\s|""|$)", RegexOptions.IgnoreCase);
         return match.Success ? match.Groups["path"].Value : null;
     }
 }
