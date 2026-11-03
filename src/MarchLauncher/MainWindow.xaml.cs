@@ -520,27 +520,14 @@ public partial class MainWindow : Window
         ClientUpdateStatusText.Text = "Проверяем файлы игрового клиента...";
         try
         {
-            // Licensed GTA files are repaired only from the user's own installation.
+            // The drive-only workflow never makes a second copy of GTA SA.
             var gta = GameClientInstaller.GtaDirectory(root);
             if (!File.Exists(Path.Combine(gta, "gta_sa.exe")) ||
                 !File.Exists(Path.Combine(gta, "models", "gta3.img")))
             {
-                if (!Directory.Exists(_gameSourcePath))
-                {
-                    ClientUpdateStatusText.Text =
-                        "Не хватает GTA SA. Укажи исходную GTA в разделе «Установка игры».";
-                    return false;
-                }
-
-                ClientUpdateStatusText.Text = "Восстанавливаем GTA из твоей установки...";
-                var gameProgress = new Progress<GameClientInstaller.InstallProgress>(p =>
-                {
-                    ClientUpdateProgressBar.Value = p.Percent;
-                    ClientUpdateStatusText.Text = p.Message;
-                });
-                await GameClientInstaller.CopyOwnedGameAsync(
-                    _gameSourcePath, root, gameProgress, CancellationToken.None);
-                ClientUpdateProgressBar.Value = 0;
+                ClientUpdateStatusText.Text =
+                    "Нет GTA SA. Открой «Установка игры», выбери диск и нажми «УСТАНОВИТЬ».";
+                return false;
             }
 
             var progress = new Progress<ProjectUpdateService.ProgressInfo>(p =>
