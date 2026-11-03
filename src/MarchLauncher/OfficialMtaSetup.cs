@@ -145,26 +145,29 @@ internal static class OfficialMtaSetup
             return;
         }
 
-        // The official installer reads the machine-wide GTA path first. Never override
-        // that path silently, as that could break another user's MTA installation.
+        // The official installer reads the machine-wide GTA path first. Do not silently
+        // change an existing MTA install. Fall back to the official setup window when
+        // another GTA is registered, so the user can approve the new GTA folder.
+        bool needsGtaPathConfirmation = false;
         try
         {
-            using var key = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine,
-                RegistryView.Registry32).OpenSubKey(
-                    @"SOFTWARE\Multi Theft Auto: San Andreas All\Common");
+            using var baseKey = RegistryKey.OpenBaseKey(
+                RegistryHive.LocalMachine, RegistryView.Registry32);
+            using var key = baseKey.OpenSubKey(
+                @"SOFTWARE\Multi Theft Auto: San Andreas All\Common");
             var registered = key?.GetValue("GTA:SA Path") as string;
-            if (!string.IsNullOrWhiteSpace(registered) &&
+            needsGtaPathConfirmation = !string.IsNullOrWhiteSpace(registered) &&
                 !string.Equals(Path.GetFullPath(registered.Trim().Trim('"')).TrimEnd('\\'),
                     Path.GetFullPath(gta).TrimEnd('\\'),
-                    StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException(
-                    "В Windows другой путь GTA для MTA. Автоматическая установка не будет менять его без разрешения. " +
-                    "Укажи нашу папку GTA в официальном установщике MTA.");
+                    StringComparison.OrdinalIgnoreCase);
         }
         catch (System.Security.SecurityException)
         {
-            throw new InvalidOperationException(
-                "Нет доступа к проверке пути GTA в реестре Windows.");
+            needsGtaPathConfirmation = true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            needsGtaPathConfirmation = true;
         }
 
         var cache = Path.Combine(
@@ -225,12 +228,16 @@ internal static class OfficialMtaSetup
             key?.SetValue("GTA:SA Path", gta, RegistryValueKind.String);
 
         Directory.CreateDirectory(mta);
-        progress.Report(new ProgressInfo("Устанавливаем официальный MTA...", 87));
+        progress.Report(new ProgressInfo(
+            needsGtaPathConfirmation
+                ? "В системе уже был MTA. В его официальном установщике выбери GTA из MARCH ROLE PLAY."
+                : "Автоматическая установка официального MTA...", 87));
         using var process = Process.Start(new ProcessStartInfo
         {
             FileName = file,
-            // NSIS silent install; /D= must be the last parameter, unquoted.
-            Arguments = "/S /D=" + mta,
+            // NSIS: /D= must be last and unquoted. The interactive mode permits
+            // selecting the GTA folder when an unrelated global path exists.
+            Arguments = needsGtaPathConfirmation ? "/D=" + mta : "/S /D=" + mta,
             UseShellExecute = true,
             WorkingDirectory = Path.GetDirectoryName(file)!
         }) ?? throw new IOException("Не удалось запустить установщик MTA.");
@@ -240,6 +247,20 @@ internal static class OfficialMtaSetup
             throw new InvalidOperationException(
                 "Установщик MTA завершился без подтверждённой установки. " +
                 "Проверь журнал Windows и используй официальный установщик.");
+        // The installer can finish successfully yet bind MTA to the wrong GTA.
+        using (var baseKey = RegistryKey.OpenBaseKey(
+            RegistryHive.LocalMachine, RegistryView.Registry32))
+        using (var key = baseKey.OpenSubKey(
+            @"SOFTWARE\Multi Theft Auto: San Andreas All\Common"))
+        {
+            var boundGta = key?.GetValue("GTA:SA Path") as string;
+            if (!string.IsNullOrWhiteSpace(boundGta) &&
+                !string.Equals(Path.GetFullPath(boundGta.Trim().Trim('"')).TrimEnd('\\'),
+                    Path.GetFullPath(gta).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(
+                    "MTA установился, но привязан к другой GTA. " +
+                    "Запусти установщик MTA ещё раз и выбери " + gta);
+        }
         progress.Report(new ProgressInfo("MTA установлен в MARCH ROLE PLAY.", 100));
     }
 }
