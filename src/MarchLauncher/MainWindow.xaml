@@ -167,8 +167,8 @@
   </Grid.RowDefinitions>
   <StackPanel Grid.Row="0" Margin="12,1,0,10">
    <TextBlock Text="MARCH ROLE PLAY  /  НАСТРОЙКИ" Foreground="#66CFCF" FontWeight="Bold" FontSize="11"/>
-   <TextBlock Text="Установка MARCH ROLE PLAY" Foreground="#F0FEFF" FontSize="32" FontWeight="Black" Margin="0,8,0,0"/>
-   <TextBlock Text="Выбери диск — лаунчер сам подготовит установку" Foreground="#95B4C1" FontSize="12" Margin="0,3,0,0"/>
+   <TextBlock Text="Установка игры" Foreground="#F0FEFF" FontSize="32" FontWeight="Black" Margin="0,8,0,0"/>
+   <TextBlock Text="Одна папка проекта: GTA SA + MTA + модели" Foreground="#95B4C1" FontSize="12" Margin="0,3,0,0"/>
   </StackPanel>
   <Border Grid.Row="1" Background="#D8081B25" BorderBrush="#24515D" BorderThickness="1" CornerRadius="14">
    <Grid Margin="20,20,20,20">
@@ -182,40 +182,34 @@
           <Viewbox Stretch="Uniform"><Path Fill="#07DAD3" Data="M10,4H2C0.9,4 0,4.9 0,6V18C0,19.1 0.9,20 2,20H22C23.1,20 24,19.1 24,18V8C24,6.9 23.1,6 22,6H12L10,4ZM2,8H22V18H2V8Z"/></Viewbox>
          </Border>
          <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-          <TextBlock Text="ВЫБОР ДИСКА" FontSize="15" FontWeight="Bold" Foreground="#E9FFFF"/>
-          <TextBlock Text="GTA San Andreas, MTA и модели MARCH" Margin="0,5,0,0" Foreground="#9BBCC7" FontSize="11"/>
+          <TextBlock Text="ПАПКА УСТАНОВКИ" FontSize="15" FontWeight="Bold" Foreground="#E9FFFF"/>
+          <TextBlock Text="Где будут находиться игровые файлы" Margin="0,5,0,0" Foreground="#9BBCC7" FontSize="11"/>
          </StackPanel>
         </StackPanel>
-        <TextBlock Text="НА КАКОЙ ДИСК УСТАНОВИТЬ ИГРУ" Foreground="#86ABB9" FontSize="11" Margin="0,0,0,8"/>
-        <ComboBox x:Name="DriveSelector" SelectionChanged="DriveSelector_SelectionChanged"
-                  Height="43" FontWeight="Bold" FontSize="15" Background="#B8FCF9"
-                  Foreground="#032A33" Margin="0,0,0,9"/>
-        <TextBlock Text="Папка MARCH ROLE PLAY создаётся автоматически." Foreground="#9ABDC9"
-                   FontSize="11" Margin="0,0,0,8"/>
-        <TextBlock Visibility="Collapsed" Text="ПУТЬ К ПАПКЕ" Foreground="#86ABB9" FontSize="11" Margin="0,0,0,8"/>
-        <Grid Visibility="Collapsed">
+        <TextBlock Text="ПУТЬ К ПАПКЕ" Foreground="#86ABB9" FontSize="11" Margin="0,0,0,8"/>
+        <Grid>
          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="112"/></Grid.ColumnDefinitions>
          <TextBox x:Name="InstallPathBox" IsReadOnly="True" Height="45" Padding="12,10" FontSize="12" Text="Папка пока не выбрана" ToolTip="Путь к отдельной сборке MARCH ROLE PLAY"/>
          <Button Grid.Column="2" Content="ОБЗОР" Background="#174755" BorderBrush="#39808B" BorderThickness="1" Foreground="#CFFBFA" FontWeight="Bold" FontSize="12" Click="BrowseInstallFolder_Click"/>
         </Grid>
-        <TextBlock Visibility="Collapsed" Text="ИСТОЧНИК GTA SAN ANDREAS" Margin="0,17,0,8" Foreground="#86ABB9" FontSize="11"/>
-         <Grid Visibility="Collapsed">
+        <TextBlock Text="ИСТОЧНИК GTA SAN ANDREAS" Margin="0,17,0,8" Foreground="#86ABB9" FontSize="11"/>
+         <Grid>
           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="112"/></Grid.ColumnDefinitions>
           <TextBox x:Name="SourceGtaBox" IsReadOnly="True" Height="45" Padding="12,10" FontSize="12" Text="Исходная GTA SA не выбрана"/>
           <Button Grid.Column="2" Content="ОБЗОР" Background="#174755" BorderBrush="#39808B" BorderThickness="1" Foreground="#CFFBFA" FontWeight="Bold" FontSize="12" Click="BrowseGtaSource_Click"/>
          </Grid>
-         <TextBlock Visibility="Collapsed" Text="Выбери свою установленную GTA SA. Оригинальные файлы не изменяются."
+         <TextBlock Text="Выбери свою установленную GTA SA. Оригинальные файлы не изменяются."
                    Margin="0,11,0,0" Foreground="#89AAB6" FontSize="11" TextWrapping="Wrap"/>
        </StackPanel>
       </Border>
-      <TextBlock Visibility="Collapsed" Text="ВАРИАНТ УСТАНОВКИ" Foreground="#B5D9E0" FontWeight="Bold" FontSize="12" Margin="3,23,0,11"/>
-      <Border Visibility="Collapsed" Background="#102B36" BorderBrush="#265361" BorderThickness="1" CornerRadius="10" Padding="16,15">
+      <TextBlock Text="ВАРИАНТ УСТАНОВКИ" Foreground="#B5D9E0" FontWeight="Bold" FontSize="12" Margin="3,23,0,11"/>
+      <Border Background="#102B36" BorderBrush="#265361" BorderThickness="1" CornerRadius="10" Padding="16,15">
        <StackPanel>
         <RadioButton x:Name="FullInstallOption" GroupName="GameInstallMode" Content="Полная установка" Foreground="#F0FFFF" FontSize="14" FontWeight="SemiBold" IsChecked="True"/>
         <TextBlock Text="Создать GTA San Andreas рядом с папкой MTA" Foreground="#8DAEBB" FontSize="11" Margin="23,7,0,0"/>
        </StackPanel>
       </Border>
-      <Border Visibility="Collapsed" Background="#102B36" BorderBrush="#265361" BorderThickness="1" CornerRadius="10" Padding="16,15" Margin="0,10,0,0">
+      <Border Background="#102B36" BorderBrush="#265361" BorderThickness="1" CornerRadius="10" Padding="16,15" Margin="0,10,0,0">
        <StackPanel>
         <RadioButton x:Name="UpdateInstallOption" GroupName="GameInstallMode" Content="Обновить файлы" Foreground="#F0FFFF" FontSize="14" FontWeight="SemiBold"/>
         <TextBlock Text="Проверка наличия и SHA-256 всех файлов MARCH Assets" Foreground="#8DAEBB" FontSize="11" Margin="23,7,0,0"/>
@@ -224,20 +218,20 @@
       <Border Background="#102C39" BorderBrush="#2B5965" BorderThickness="1"
               CornerRadius="10" Padding="16" Margin="0,13,0,0">
        <StackPanel>
-        <TextBlock Text="АВТОМАТИЧЕСКАЯ УСТАНОВКА MTA" Foreground="#0BE1DA" FontWeight="Bold" FontSize="13"/>
-        <TextBlock Text="Установщик скачает официальный MTA. Найденную GTA SA можно перенести без копирования только с твоего разрешения."
+        <TextBlock Text="ШАГ 2  /  УСТАНОВКА MTA" Foreground="#0BE1DA" FontWeight="Bold" FontSize="13"/>
+        <TextBlock Text="GTA и MTA находятся в одной папке MARCH ROLE PLAY, но в отдельных каталогах."
                    Foreground="#9ABCC8" FontSize="11" Margin="0,8,0,11" TextWrapping="Wrap"/>
-        <TextBlock Text="GTA SAN ANDREAS"
+        <TextBlock Text="ПАПКА GTA SA — укажи её во время установки MTA"
                    Foreground="#9CC3CC" FontWeight="Bold" FontSize="10"/>
         <TextBlock x:Name="GtaLocationText" Text="GTA San Andreas — выбери папку проекта"
                    Foreground="#F0FFFF" FontSize="11" Margin="0,4,0,12" TextWrapping="Wrap"/>
-        <TextBlock Text="MTA SAN ANDREAS"
+        <TextBlock Text="ПАПКА УСТАНОВКИ MTA"
                    Foreground="#9CC3CC" FontWeight="Bold" FontSize="10"/>
         <TextBlock x:Name="MtaLocationText" Text="MTA San Andreas — выбери папку проекта"
                    Foreground="#F0FFFF" FontSize="11" Margin="0,4,0,9" TextWrapping="Wrap"/>
         <TextBlock x:Name="MtaInstallStatusText" Text="MTA ещё не установлен в папку проекта"
                    Foreground="#9CC3CC" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,13"/>
-        <Grid Visibility="Collapsed">
+        <Grid>
          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
          <Button Content="СКАЧАТЬ MTA" Click="DownloadOfficialMta_Click"
                  Background="#0A7C80" Foreground="#FFFFFF" FontWeight="Bold" Height="41" FontSize="11"/>
@@ -245,7 +239,7 @@
                  Background="#174755" BorderBrush="#39808B" Foreground="#DBF8F7"
                  FontWeight="Bold" Height="41" FontSize="11"/>
         </Grid>
-        <TextBlock Text="MTA загружается автоматически с официального сайта. GTA SA должна быть получена законным способом."
+        <TextBlock Text="Откроется официальный сайт MTA. В установщике выбери оба пути выше; GTA и MTA в архив проекта не включены."
                    Foreground="#8EABB8" FontSize="11" Margin="0,12,0,0" TextWrapping="Wrap"/>
        </StackPanel>
       </Border>
@@ -265,12 +259,12 @@
        <TextBlock Text="R O L E  P L A Y" FontSize="13" FontWeight="Bold" Margin="3,-4,0,0"/>
        <Rectangle Height="1" Fill="#3E6F7B" Margin="0,25,0,18"/>
        <TextBlock Text="ИГРОВОЙ КЛИЕНТ" Foreground="#F2FEFF" FontWeight="Bold" FontSize="14"/>
-       <TextBlock Text="Только выбор диска. Файлы проекта и официальный MTA устанавливаются автоматически." Foreground="#9DBDCA" FontSize="12" TextWrapping="Wrap" Margin="0,9,0,0"/>
+       <TextBlock Text="Твоя GTA SA, официальный MTA и модели проекта находятся в одной сборке." Foreground="#9DBDCA" FontSize="12" TextWrapping="Wrap" Margin="0,9,0,0"/>
       </StackPanel>
       <StackPanel Margin="18,0,18,22" VerticalAlignment="Bottom">
-       <TextBlock x:Name="InstallStatusText" Text="Выбери диск и нажми «УСТАНОВИТЬ»." Foreground="#B5D9E0" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,11"/>
+       <TextBlock x:Name="InstallStatusText" Text="Выбери режим и нажми «НАЧАТЬ»." Foreground="#B5D9E0" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,11"/>
         <ProgressBar x:Name="InstallProgressBar" Height="7" Minimum="0" Maximum="100" Value="0" Foreground="#00E5DF" Background="#173643" Margin="0,0,0,12"/>
-       <Button x:Name="InstallGameButton" Content="УСТАНОВИТЬ" Click="InstallGameButton_Click" Background="#00E5DF" Foreground="#041E25" Height="45" FontWeight="Bold"/>
+       <Button x:Name="InstallGameButton" Content="НАЧАТЬ" Click="InstallGameButton_Click" Background="#00E5DF" Foreground="#041E25" Height="45" FontWeight="Bold"/>
       </StackPanel>
      </Grid>
     </Border>
@@ -281,7 +275,7 @@
     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="122"/><ColumnDefinition Width="12"/><ColumnDefinition Width="158"/></Grid.ColumnDefinitions>
     <StackPanel VerticalAlignment="Center">
      <TextBlock Text="НАСТРОЙКИ УСТАНОВКИ" Foreground="#C7E5EC" FontWeight="Bold" FontSize="11"/>
-     <TextBlock Text="Установка на выбранный диск — без второй копии GTA SA" Foreground="#829EAF" FontSize="11" Margin="0,5,0,0"/>
+     <TextBlock Text="Отдельная GTA SA и обновление MARCH Assets по манифесту" Foreground="#829EAF" FontSize="11" Margin="0,5,0,0"/>
     </StackPanel>
     <Button Grid.Column="1" Content="НАЗАД" Background="#183744" Foreground="#D5F4FA" Click="SettingsBack_Click" Height="40"/>
     <Button Grid.Column="3" Content="СОХРАНИТЬ" Background="#0BE1DA" Foreground="#041E25" FontWeight="Bold" Click="SettingsSave_Click" Height="40"/>

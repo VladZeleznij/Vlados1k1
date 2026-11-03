@@ -25,7 +25,6 @@ public partial class MainWindow : Window
     private string _gameInstallPath = "";
     private string _gameSourcePath = "";
     private CancellationTokenSource? _installerCancellation;
-    private bool _initializingDriveSelector;
     private Task<bool>? _clientUpdateInFlight;
     private bool _launchingAfterUpdates;
     private string _gameInstallMode = "full";
@@ -50,7 +49,6 @@ public partial class MainWindow : Window
         _discordPresence.StatusChanged += message =>
             Dispatcher.BeginInvoke(new Action(() => DiscordPresenceText.Text = message));
         LoadSettings();
-        InitializeDriveSelector();
         try
         {
             _authHandoff = new LauncherAuthHandoff();
@@ -520,14 +518,27 @@ public partial class MainWindow : Window
         ClientUpdateStatusText.Text = "Проверяем файлы игрового клиента...";
         try
         {
-            // The drive-only workflow never makes a second copy of GTA SA.
+            // Licensed GTA files are repaired only from the user's own installation.
             var gta = GameClientInstaller.GtaDirectory(root);
             if (!File.Exists(Path.Combine(gta, "gta_sa.exe")) ||
                 !File.Exists(Path.Combine(gta, "models", "gta3.img")))
             {
-                ClientUpdateStatusText.Text =
-                    "Нет GTA SA. Открой «Установка игры», выбери диск и нажми «УСТАНОВИТЬ».";
-                return false;
+                if (!Directory.Exists(_gameSourcePath))
+                {
+                    ClientUpdateStatusText.Text =
+                        "Не хватает GTA SA. Укажи исходную GTA в разделе «Установка игры».";
+                    return false;
+                }
+
+                ClientUpdateStatusText.Text = "Восстанавливаем GTA из твоей установки...";
+                var gameProgress = new Progress<GameClientInstaller.InstallProgress>(p =>
+                {
+                    ClientUpdateProgressBar.Value = p.Percent;
+                    ClientUpdateStatusText.Text = p.Message;
+                });
+                await GameClientInstaller.CopyOwnedGameAsync(
+                    _gameSourcePath, root, gameProgress, CancellationToken.None);
+                ClientUpdateProgressBar.Value = 0;
             }
 
             var progress = new Progress<ProjectUpdateService.ProgressInfo>(p =>
@@ -690,51 +701,10 @@ public partial class MainWindow : Window
         // Discard any unsaved UI edits when returning to the settings tab.
         InstallPathBox.Text = string.IsNullOrWhiteSpace(_gameInstallPath)
             ? "Папка пока не выбрана" : _gameInstallPath;
-        SourceGtaBox.Text = "Исходная GTA SA не выбрана";
-        UpdateInstallOption.IsChecked = false;
-        FullInstallOption.IsChecked = true;
-        ApplySelectedDrive();
-    }
-
-    private void InitializeDriveSelector()
-    {
-        _initializingDriveSelector = true;
-        try
-        {
-            DriveSelector.Items.Clear();
-            var disks = OfficialMtaSetup.AvailableDisks();
-            foreach (var drive in disks)
-                DriveSelector.Items.Add(drive + ":\\");
-            var preferred = !string.IsNullOrWhiteSpace(_gameInstallPath)
-                ? char.ToUpperInvariant(Path.GetPathRoot(_gameInstallPath)![0])
-                : char.ToUpperInvariant(Path.GetPathRoot(
-                    Environment.GetFolderPath(Environment.SpecialFolder.System))![0]);
-            var selected = disks.Contains(preferred) ? preferred :
-                disks.FirstOrDefault();
-            if (selected != default(char))
-                DriveSelector.SelectedItem = selected + ":\\";
-            else
-                InstallStatusText.Text = "Не найден доступный локальный диск.";
-        }
-        finally
-        {
-            _initializingDriveSelector = false;
-        }
-        ApplySelectedDrive();
-    }
-
-    private void DriveSelector_SelectionChanged(
-        object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        if (!_initializingDriveSelector) ApplySelectedDrive();
-    }
-
-    private void ApplySelectedDrive()
-    {
-        var value = DriveSelector.SelectedItem as string;
-        if (string.IsNullOrWhiteSpace(value)) return;
-        var root = OfficialMtaSetup.GameRoot(value[0]);
-        InstallPathBox.Text = root;
+        SourceGtaBox.Text = string.IsNullOrWhiteSpace(_gameSourcePath)
+            ? "Исходная GTA SA не выбрана" : _gameSourcePath;
+        UpdateInstallOption.IsChecked = _gameInstallMode == "update";
+        FullInstallOption.IsChecked = _gameInstallMode != "update";
         UpdateClientFolderPreview();
     }
 
@@ -842,114 +812,81 @@ public partial class MainWindow : Window
             return;
         }
 
-        var selectedDrive = DriveSelector.SelectedItem as string;
-        if (string.IsNullOrWhiteSpace(selectedDrive))
+        var target = InstallPathBox.Text;
+        var source = SourceGtaBox.Text;
+        var update = UpdateInstallOption.IsChecked == true;
+        if (string.IsNullOrWhiteSpace(target) || target == "Папка пока не выбрана")
         {
-            InstallStatusText.Text = "Выбери диск для игры.";
+            InstallStatusText.Text = "Сначала выбери папку для нового игрового клиента.";
             return;
         }
-        var target = OfficialMtaSetup.GameRoot(selectedDrive[0]);
-        var gta = GameClientInstaller.GtaDirectory(target);
-
-        // No pirate downloads and no silent copy of an existing GTA directory.
-        if (!File.Exists(Path.Combine(gta, "gta_sa.exe")) ||
-            !File.Exists(Path.Combine(gta, "models", "gta3.img")))
+        if (!update && (string.IsNullOrWhiteSpace(source) ||
+                        source == "Исходная GTA SA не выбрана"))
         {
-            var owned = OfficialMtaSetup.FindOwnedGame(selectedDrive[0], gta);
-            if (owned == null)
-            {
-                InstallStatusText.Text =
-                    "Не найдена GTA San Andreas на выбранном диске. " +
-                    "Установи свою законно полученную GTA SA прямо в " + gta +
-                    ", затем повтори установку. MTA установится автоматически.";
-                return;
-            }
-
-            var decision = System.Windows.MessageBox.Show(
-                "Найдена GTA San Andreas:\n" + owned + "\n\n" +
-                "ПЕРЕМЕСТИТЬ её в:\n" + gta + "\n\n" +
-                "Это перемещение, НЕ копирование. Старая папка исчезнет, " +
-                "а старые ярлыки и настройки могут перестать работать. " +
-                "Лаунчер не изменит файлы аккаунтов и баз сервера.\n\nПродолжить?",
-                "MARCH ROLE PLAY — перенос существующей GTA",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (decision != MessageBoxResult.Yes)
-            {
-                InstallStatusText.Text =
-                    "GTA оставлена на месте. Установка отменена без изменений.";
-                return;
-            }
-
-            try
-            {
-                OfficialMtaSetup.MoveOwnedGameInPlace(owned, gta);
-                InstallStatusText.Text = "GTA перемещена без создания второй копии.";
-            }
-            catch (Exception ex)
-            {
-                InstallStatusText.Text = "Не удалось переместить GTA: " + ex.Message;
-                return;
-            }
+            InstallStatusText.Text = "Для полной установки выбери свою GTA San Andreas.";
+            return;
         }
 
         _gameInstallPath = target;
-        _gameSourcePath = ""; // Source copy workflow no longer used.
-        _gameInstallMode = "full";
-        InstallPathBox.Text = target;
-        SourceGtaBox.Text = "Исходная GTA SA не выбрана";
-        FullInstallOption.IsChecked = true;
+        _gameSourcePath = source == "Исходная GTA SA не выбрана" ? "" : source;
+        _gameInstallMode = update ? "update" : "full";
+
         try { SaveSettings(); }
         catch (Exception ex)
         {
-            InstallStatusText.Text = "Не удалось сохранить путь: " + ex.Message;
+            InstallStatusText.Text = "Ошибка сохранения настроек: " + ex.Message;
             return;
         }
 
-        using var cts = new CancellationTokenSource();
-        _installerCancellation = cts;
+        using var cancellation = new CancellationTokenSource();
+        _installerCancellation = cancellation;
         InstallGameButton.Content = "ОТМЕНА";
         InstallProgressBar.Value = 0;
-        DriveSelector.IsEnabled = false;
+        InstallStatusText.Text = "Подготовка...";
+        var progress = new Progress<GameClientInstaller.InstallProgress>(p =>
+        {
+            InstallProgressBar.Value = p.Percent;
+            InstallStatusText.Text = p.Message;
+        });
 
         try
         {
-            var progress = new Progress<OfficialMtaSetup.ProgressInfo>(p =>
+            if (update)
             {
-                InstallStatusText.Text = p.Message;
-                InstallProgressBar.Value = p.Percentage;
-            });
-            await OfficialMtaSetup.InstallMtaAsync(target, progress, cts.Token);
-
-            var assetProgress = new Progress<ProjectUpdateService.ProgressInfo>(p =>
+                var assetProgress = new Progress<ProjectUpdateService.ProgressInfo>(p =>
+                {
+                    InstallProgressBar.Value = p.Percent;
+                    InstallStatusText.Text = p.Message;
+                    ClientUpdateStatusText.Text = p.Message;
+                    ClientUpdateProgressBar.Value = p.Percent;
+                });
+                var result = await ProjectUpdateService.CheckAndRepairAsync(
+                    target, assetProgress, cancellation.Token);
+                InstallStatusText.Text = $"Проверено {result.TotalFiles} файлов. " +
+                    $"Установлено {result.DownloadedFiles}. Версия {result.Version}.";
+                ClientUpdateStatusText.Text = InstallStatusText.Text;
+            }
+            else
             {
-                InstallStatusText.Text = p.Message;
-                InstallProgressBar.Value = p.Percent;
-                ClientUpdateStatusText.Text = p.Message;
-                ClientUpdateProgressBar.Value = p.Percent;
-            });
-            var result = await ProjectUpdateService.CheckAndRepairAsync(
-                target, assetProgress, cts.Token);
-            InstallStatusText.Text =
-                $"MARCH ROLE PLAY установлен на {selectedDrive} " +
-                $"MTA готов. Файлов проекта: {result.TotalFiles}; скачано: {result.DownloadedFiles}.";
-            ClientUpdateStatusText.Text = InstallStatusText.Text;
-            InstallProgressBar.Value = 100;
+                await GameClientInstaller.CopyOwnedGameAsync(source, target, progress,
+                    cancellation.Token);
+                InstallStatusText.Text =
+                    "GTA SA готова. MTA устанавливается из официального источника.";
+            }
             UpdateClientFolderPreview();
         }
         catch (OperationCanceledException)
         {
-            InstallStatusText.Text = "Скачивание отменено; уже установленные файлы сохранены.";
+            InstallStatusText.Text = "Операция отменена. Существующие файлы сохранены.";
         }
         catch (Exception ex)
         {
-            InstallStatusText.Text = "Ошибка: " + ex.Message;
+            InstallStatusText.Text = "Ошибка установки: " + ex.Message;
         }
         finally
         {
             _installerCancellation = null;
-            InstallGameButton.Content = "УСТАНОВИТЬ";
-            DriveSelector.IsEnabled = true;
-            UpdateClientFolderPreview();
+            InstallGameButton.Content = "НАЧАТЬ";
         }
     }
 
@@ -958,11 +895,12 @@ public partial class MainWindow : Window
         var oldPath = _gameInstallPath;
         var oldMode = _gameInstallMode;
         var oldSource = _gameSourcePath;
-        var selectedDisk = DriveSelector.SelectedItem as string;
-        _gameInstallPath = string.IsNullOrWhiteSpace(selectedDisk)
-            ? "" : OfficialMtaSetup.GameRoot(selectedDisk[0]);
-        _gameInstallMode = "full";
-        _gameSourcePath = "";
+        _gameInstallPath = InstallPathBox.Text == "Папка пока не выбрана"
+            ? "" : InstallPathBox.Text;
+        _gameInstallMode = UpdateInstallOption.IsChecked == true
+            ? "update" : "full";
+        _gameSourcePath = SourceGtaBox.Text == "Исходная GTA SA не выбрана"
+            ? "" : SourceGtaBox.Text;
         try
         {
             SaveSettings();
