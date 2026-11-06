@@ -71,9 +71,6 @@ public partial class MainWindow : Window
         {
             await UpdateServerStatusAsync();
             await UpdateGamePresenceAsync();
-            // First launch check: missing or changed MARCH Assets are restored automatically.
-            if (!string.IsNullOrWhiteSpace(_gameInstallPath))
-                _ = EnsureClientUpdatedAsync();
         };
         Closed += (_, _) =>
         {
@@ -395,7 +392,6 @@ public partial class MainWindow : Window
         LoginActionButton.IsEnabled = false;
         try
         {
-            if (!await ClientReadyToPlayAsync()) return;
             if (PrepareLauncherAuth("login", LoginUsernameBox.Text, LoginPasswordBox.Password))
                 LaunchMta();
         }
@@ -419,7 +415,6 @@ public partial class MainWindow : Window
         RegisterActionButton.IsEnabled = false;
         try
         {
-            if (!await ClientReadyToPlayAsync()) return;
             if (PrepareLauncherAuth("register", RegisterUsernameBox.Text, password))
                 LaunchMta();
         }
@@ -454,7 +449,6 @@ public partial class MainWindow : Window
         PlayButton.IsEnabled = false;
         try
         {
-            if (!await ClientReadyToPlayAsync()) return;
 
         // If a player left the Registration tab open, still use saved LOGIN
         // credentials when no registration form was filled.
@@ -575,74 +569,24 @@ public partial class MainWindow : Window
 
     private async void UpdateCheckButton_Click(object sender, RoutedEventArgs e)
     {
-        await EnsureClientUpdatedAsync();
+        ClientUpdateStatusText.Text = "Проверка файлов временно отключена.";
     }
 
     private void LaunchMta()
     {
-        const string host = "127.0.0.1";
-        const int port = 22003;
         try
         {
             SaveSettings();
-            var projectGtaExists = !string.IsNullOrWhiteSpace(_gameInstallPath) &&
-                File.Exists(Path.Combine(
-                    GameClientInstaller.GtaDirectory(_gameInstallPath), "gta_sa.exe"));
-
-            if (projectGtaExists)
-            {
-                if (!GameClientInstaller.HasLocalMta(_gameInstallPath))
-                {
-                    StatusText.Text =
-                        "В сборке нет MTA. Открой Настройки → Установка игры и установи MTA рядом с GTA.";
-                    return;
-                }
-
-                // The official MTA installer stores GTA location in the registry.
-                // A copied GTA directory alone does not switch this location.
-                try
-                {
-                    using var baseKey = Microsoft.Win32.RegistryKey.OpenBaseKey(
-                        Microsoft.Win32.RegistryHive.LocalMachine,
-                        Microsoft.Win32.RegistryView.Registry32);
-                    using var key = baseKey.OpenSubKey(
-                        @"SOFTWARE\Multi Theft Auto: San Andreas All\Common");
-                    var configured = key?.GetValue("GTA:SA Path") as string;
-                    if (!string.IsNullOrWhiteSpace(configured) &&
-                        !string.Equals(
-                            Path.GetFullPath(configured.Trim().Trim('"')).TrimEnd('\\'),
-                            Path.GetFullPath(
-                                GameClientInstaller.GtaDirectory(_gameInstallPath)).TrimEnd('\\'),
-                            StringComparison.OrdinalIgnoreCase))
-                    {
-                        StatusText.Text =
-                            "MTA настроен на другую GTA. Переустанови MTA и выбери GTA из папки MARCH ROLE PLAY.";
-                        return;
-                    }
-                }
-                catch (System.Security.SecurityException) { /* MTA itself will verify path */ }
-                catch (UnauthorizedAccessException) { /* No registry access */ }
-
-                var exe = GameClientInstaller.LocalMtaExecutable(_gameInstallPath);
-                Process.Start(new ProcessStartInfo(exe, $"mtasa://{host}:{port}")
-                {
-                    WorkingDirectory = GameClientInstaller.MtaDirectory(_gameInstallPath),
-                    UseShellExecute = true
-                });
-                StatusText.Text =
-                    "Запускается MTA из папки проекта MARCH ROLE PLAY.";
-            }
-            else
-            {
-                // Do not rely on the mtasa:// Windows URL association alone:
-                // many user installations skip it. Find the official installed
-                // Multi Theft Auto.exe and pass the URI directly as an argument.
-                StatusText.Text = MtaClientLauncher.Start(_mtaFolder, _gameInstallPath);
-            }
+            // The selected MTA is used exclusively; no file repair, checksum,
+            // installation scan, or alternate-client fallback is performed.
+            // The native MTA integrity checks remain enabled and unchanged.
+            StatusText.Text = !string.IsNullOrWhiteSpace(_mtaFolder)
+                ? MtaClientLauncher.StartSelected(_mtaFolder)
+                : MtaClientLauncher.Start(null, null);
         }
         catch (Exception ex)
         {
-            StatusText.Text = "Не удалось открыть MTA: " + ex.Message;
+            StatusText.Text = "Не удалось запустить MTA: " + ex.Message;
         }
     }
 
@@ -698,6 +642,8 @@ public partial class MainWindow : Window
         HomeNavButton.Effect = null;
 
         // Discard any unsaved UI edits when returning to the settings tab.
+        MtaFolderBox.Text = string.IsNullOrWhiteSpace(_mtaFolder)
+            ? "Папка MTA пока не выбрана" : _mtaFolder;
         InstallPathBox.Text = string.IsNullOrWhiteSpace(_gameInstallPath)
             ? "Папка пока не выбрана" : _gameInstallPath;
         SourceGtaBox.Text = string.IsNullOrWhiteSpace(_gameSourcePath)
@@ -705,6 +651,29 @@ public partial class MainWindow : Window
         UpdateInstallOption.IsChecked = _gameInstallMode == "update";
         FullInstallOption.IsChecked = _gameInstallMode != "update";
         UpdateClientFolderPreview();
+    }
+
+    private void BrowseMtaFolder_Click(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Выбери папку MTA, в которой находится Multi Theft Auto.exe",
+            UseDescriptionForTitle = true,
+            SelectedPath = Directory.Exists(_mtaFolder) ? _mtaFolder : ""
+        };
+        if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            return;
+
+        var candidate = Path.Combine(dialog.SelectedPath, "Multi Theft Auto.exe");
+        if (!File.Exists(candidate))
+        {
+            InstallStatusText.Text =
+                "Не найден Multi Theft Auto.exe. Выбери папку установленного MTA.";
+            return;
+        }
+
+        MtaFolderBox.Text = dialog.SelectedPath;
+        InstallStatusText.Text = "Клиент выбран. Нажми «СОХРАНИТЬ».";
     }
 
     private void BrowseInstallFolder_Click(object sender, RoutedEventArgs e)
@@ -891,27 +860,32 @@ public partial class MainWindow : Window
 
     private void SettingsSave_Click(object sender, RoutedEventArgs e)
     {
-        var oldPath = _gameInstallPath;
-        var oldMode = _gameInstallMode;
-        var oldSource = _gameSourcePath;
-        _gameInstallPath = InstallPathBox.Text == "Папка пока не выбрана"
-            ? "" : InstallPathBox.Text;
-        _gameInstallMode = UpdateInstallOption.IsChecked == true
-            ? "update" : "full";
-        _gameSourcePath = SourceGtaBox.Text == "Исходная GTA SA не выбрана"
-            ? "" : SourceGtaBox.Text;
+        var selection = MtaFolderBox.Text.Trim();
+        if (selection == "Папка MTA пока не выбрана")
+            selection = "";
+
+        if (!string.IsNullOrWhiteSpace(selection) &&
+            !File.Exists(Path.Combine(selection, "Multi Theft Auto.exe")))
+        {
+            InstallStatusText.Text =
+                "Папка не содержит Multi Theft Auto.exe. Выбери установленный MTA.";
+            return;
+        }
+
+        var previous = _mtaFolder;
         try
         {
+            _mtaFolder = selection;
             SaveSettings();
-            StatusText.Text = "Настройки игрового клиента сохранены.";
+            StatusText.Text = string.IsNullOrWhiteSpace(selection)
+                ? "Используется автоматический поиск MTA. Проверка файлов отключена."
+                : "Выбран клиент MTA: " + selection;
             ShowDashboard();
         }
         catch (Exception ex)
         {
-            _gameInstallPath = oldPath;
-            _gameInstallMode = oldMode;
-            _gameSourcePath = oldSource;
-            StatusText.Text = "Не удалось сохранить настройки установки: " + ex.Message;
+            _mtaFolder = previous;
+            InstallStatusText.Text = "Не удалось сохранить папку MTA: " + ex.Message;
         }
     }
 
