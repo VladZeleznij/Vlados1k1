@@ -16,6 +16,35 @@ internal static class MtaClientLauncher
 {
     public const string LocalServerUri = "mtasa://127.0.0.1:22003";
 
+    /// <summary>
+    /// Starts precisely the MTA installation selected by the player.
+    /// No fallback to another client, no file repair and no GTA modification.
+    /// This does not bypass MTA's own integrity or anti-cheat checks.
+    /// </summary>
+    public static string StartSelected(string directory)
+    {
+        if (string.IsNullOrWhiteSpace(directory))
+            throw new DirectoryNotFoundException("Папка MTA не выбрана.");
+        var absolute = Path.GetFullPath(directory.Trim());
+        var executable = Path.Combine(absolute, "Multi Theft Auto.exe");
+        if (!File.Exists(executable))
+            throw new FileNotFoundException(
+                "В выбранной папке не найден Multi Theft Auto.exe. Выбери папку установленного MTA.",
+                executable);
+
+        var start = new ProcessStartInfo(executable)
+        {
+            WorkingDirectory = absolute,
+            UseShellExecute = true
+        };
+        start.ArgumentList.Add(LocalServerUri);
+        using var process = Process.Start(start);
+        if (process is null)
+            throw new InvalidOperationException("Windows не удалось запустить выбранный клиент MTA.");
+
+        return "Запущен выбранный клиент MTA: " + absolute;
+    }
+
     public static string Start(string? savedMtaDirectory, string? projectInstallDirectory)
     {
         var failures = new List<string>();
