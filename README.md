@@ -53,3 +53,9 @@ Discord's desktop activity display must be enabled. This requires a local MTA se
 ## Saved-password restoration
 
 When the player has previously checked **Запомнить логин и пароль** and completed a successful server login, Windows Credential Manager stores a generic credential for the Windows user. The launcher restores it even when an older launcher version did not preserve the JSON checkbox. A normal **Играть** click automatically prepares the SSO ticket using that saved credential, including when the Registration tab is open but unused. Unchecking the remember option deletes the stored credential.
+
+## Temporary MTA-client selection mode (November 2026)
+
+**File scanning, SHA-256 verification, automatic repair and downloads are temporarily disabled in the launcher UI and before every game launch.** The user can open the in-launcher **Настройки** tab, click **ОБЗОР** in **ВЫБРАННЫЙ КЛИЕНТ MTA**, choose the directory containing **Multi Theft Auto.exe** and click **СОХРАНИТЬ**. The selection is stored as `MtaPath` in the existing settings JSON. **ИГРАТЬ**, **ВОЙТИ** and **ЗАРЕГИСТРИРОВАТЬСЯ** launch that exact installed MTA client with `mtasa://127.0.0.1:22003` as a command-line argument, without falling back to another installation or modifying the client's files. If no directory is chosen, the launcher continues to attempt installed MTA discovery.
+
+The automatic MARCH asset update service and earlier installation controls remain in source for future re-enablement, but are currently inactive/hidden. This does **not** disable or bypass MTA's own integrity and anti-cheat verification. Existing `march_auth` single-use local SSO, saved passwords, server monitoring and Discord Rich Presence are preserved.
